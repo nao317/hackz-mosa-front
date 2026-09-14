@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Artwork from "../components/atoms/Artwork";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
 import NextSongButton from "../components/atoms/NextSongButton";
+import Slider from "../components/atoms/Slider";
 import FeedbackButtons from "../components/molecules/FeedbackButtons";
 import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
@@ -30,6 +31,7 @@ export default function Home() {
   const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
+  const [parameter, setParameter] = useState(42);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -108,6 +110,15 @@ export default function Home() {
             />
           )}
           <NextSongButton />
+
+          <div style={{ marginTop: 24, maxWidth: 420 }}>
+            <Slider
+              step={1}
+              value={parameter}
+              onChange={setParameter}
+            />
+          </div>
+
           <audio
             ref={audioRef}
             key={state.track.id}
