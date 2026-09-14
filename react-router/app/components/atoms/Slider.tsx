@@ -1,4 +1,12 @@
-import { type ChangeEvent, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type CSSProperties,
+  useId,
+  useMemo,
+  useState,
+} from "react";
+
+import styles from "./Slider.module.css";
 
 type SliderProps = {
   min?: number;
@@ -8,6 +16,8 @@ type SliderProps = {
   defaultValue?: number;
   label?: string;
   onChange?: (value: number) => void;
+  disabled?: boolean;
+  showValue?: boolean;
 };
 
 export function clampValue(value: number, min: number, max: number) {
@@ -30,7 +40,10 @@ export default function Slider({
   defaultValue = min,
   label = "Range",
   onChange,
+  disabled = false,
+  showValue = true,
 }: SliderProps) {
+  const inputId = useId();
   const isControlled = value !== undefined;
   const [internalValue, setInternalValue] = useState(() =>
     clampValue(defaultValue, min, max),
@@ -53,24 +66,20 @@ export default function Slider({
   };
 
   return (
-    <div style={{ display: "grid", gap: 8 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 12,
-          fontSize: 14,
-        }}
-      >
-        <label htmlFor={label}>{label}</label>
-        <output htmlFor={label} aria-live="polite">
+    <div
+      className={styles.slider}
+      style={{ "--slider-progress": `${percentage}%` } as CSSProperties}
+    >
+      <div className={showValue ? styles.meta : styles.visuallyHidden}>
+        <label htmlFor={inputId}>{label}</label>
+        <output htmlFor={inputId} aria-live="polite">
           {activeValue}
         </output>
       </div>
 
       <input
-        id={label}
+        id={inputId}
+        className={styles.input}
         type="range"
         min={min}
         max={max}
@@ -78,14 +87,7 @@ export default function Slider({
         value={activeValue}
         onChange={handleInputChange}
         aria-label={label}
-        style={{
-          width: "100%",
-          accentColor: "#2563eb",
-          background: `linear-gradient(90deg, #2563eb 0%, #2563eb ${percentage}%, #e5e7eb ${percentage}%, #e5e7eb 100%)`,
-          borderRadius: 999,
-          height: 12,
-          cursor: "pointer",
-        }}
+        disabled={disabled}
       />
     </div>
   );

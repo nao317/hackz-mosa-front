@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
-import NextSongButton from "../components/atoms/NextSongButton";
+import NextSongButton, {
+  PreviousSongButton,
+} from "../components/atoms/NextSongButton";
 import Slider from "../components/atoms/Slider";
 import FeedbackButtons from "../components/molecules/FeedbackButtons";
 import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
+import styles from "./home.module.css";
 
 export function meta() {
   return [
@@ -31,7 +34,8 @@ export default function Home() {
   const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
-  const [parameter, setParameter] = useState(42);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -39,6 +43,8 @@ export default function Home() {
     setState({ status: "loading" });
     setIsPlaying(false);
     setPlaybackError(null);
+    setCurrentTime(0);
+    setDuration(0);
     void fetchStaleWhiskeyTrack(controller.signal)
       .then((track) => {
         setState({ status: "ready", track });
@@ -83,14 +89,30 @@ export default function Home() {
     });
   }
 
-  return (
-    <main>
-      <h1>Audius streaming spike</h1>
+  function handleSeek(nextTime: number) {
+    if (!audioRef.current) {
+      return;
+    }
 
-      {state.status === "loading" && <p>楽曲を取得しています。</p>}
+    audioRef.current.currentTime = nextTime;
+    setCurrentTime(nextTime);
+  }
+
+  const playbackDuration =
+    state.status === "ready"
+      ? duration || state.track.durationSeconds || 1
+      : 1;
+
+  return (
+    <main className={styles.page}>
+      <h1 className={styles.visuallyHidden}>Audius streaming spike</h1>
+
+      {state.status === "loading" && (
+        <p className={styles.statusMessage}>楽曲を取得しています。</p>
+      )}
 
       {state.status === "error" && (
-        <section aria-live="polite">
+        <section className={styles.errorMessage} aria-live="polite">
           <p>楽曲を取得できませんでした。</p>
           <pre>{state.message}</pre>
           <button type="button" onClick={() => setRequestId((id) => id + 1)}>
@@ -100,33 +122,68 @@ export default function Home() {
       )}
 
       {state.status === "ready" && (
-        <section>
-          <h2>{state.track.title}</h2>
-          <p>{state.track.artist}</p>
-          {state.track.artworkUrl && (
-            <Artwork
-              src={state.track.artworkUrl}
-              alt={`${state.track.title}のアートワーク`}
-            />
-          )}
-          <NextSongButton />
+        <section className={styles.player}>
+          <div className={styles.artworkFrame}>
+            {state.track.artworkUrl ? (
+              <Artwork
+                className={styles.artwork}
+                src={state.track.artworkUrl}
+                alt={`${state.track.title}のアートワーク`}
+              />
+            ) : (
+              <div className={styles.artworkPlaceholder}>No artwork</div>
+            )}
+          </div>
 
-          <div style={{ marginTop: 24, maxWidth: 420 }}>
+          <div className={styles.progress}>
             <Slider
+              min={0}
+              max={playbackDuration}
               step={1}
-              value={parameter}
-              onChange={setParameter}
+              value={Math.min(currentTime, playbackDuration)}
+              label="再生位置"
+              onChange={handleSeek}
+              showValue={false}
             />
+          </div>
+
+          <div className={styles.trackInfo}>
+            <h2 className={styles.trackTitle}>
+              {state.track.audiusUrl ? (
+                <a
+                  href={state.track.audiusUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {state.track.title}
+                </a>
+              ) : (
+                state.track.title
+              )}
+            </h2>
+            <p className={styles.artist}>{state.track.artist}</p>
           </div>
 
           <audio
             ref={audioRef}
+            className={styles.audio}
             key={state.track.id}
             preload="metadata"
             src={state.track.streamUrl}
+            onLoadedMetadata={(event) => {
+              if (Number.isFinite(event.currentTarget.duration)) {
+                setDuration(event.currentTarget.duration);
+              }
+            }}
+            onTimeUpdate={(event) =>
+              setCurrentTime(event.currentTarget.currentTime)
+            }
             onPlay={() => setIsPlaying(true)}
             onPause={() => setIsPlaying(false)}
-            onEnded={() => setIsPlaying(false)}
+            onEnded={() => {
+              setIsPlaying(false);
+              setCurrentTime(playbackDuration);
+            }}
             onError={() => {
               setIsPlaying(false);
               setPlaybackError("楽曲を読み込めませんでした。");
@@ -134,19 +191,31 @@ export default function Home() {
           >
             お使いのブラウザは音声再生に対応していません。
           </audio>
-          <PlayButtons
-            isPlaying={isPlaying}
-            onToggle={handlePlayPause}
-          />
-          {playbackError && <p role="alert">{playbackError}</p>}
-          <FeedbackButtons value={feedback} onChange={setFeedback} />
-          {state.track.audiusUrl && (
-            <p>
-              <a href={state.track.audiusUrl} target="_blank" rel="noreferrer">
-                Audiusで楽曲を開く
-              </a>
+
+          <div
+            className={styles.transportControls}
+            role="group"
+            aria-label="再生操作"
+          >
+            <PreviousSongButton disabled />
+            <div className={styles.playControl}>
+              <PlayButtons
+                isPlaying={isPlaying}
+                onToggle={handlePlayPause}
+              />
+            </div>
+            <NextSongButton disabled />
+          </div>
+
+          {playbackError && (
+            <p className={styles.playbackError} role="alert">
+              {playbackError}
             </p>
           )}
+
+          <div className={styles.feedbackControls}>
+            <FeedbackButtons value={feedback} onChange={setFeedback} />
+          </div>
         </section>
       )}
     </main>
