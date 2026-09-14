@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
+import type { FeedbackValue } from "../components/atoms/FeedbackButton";
 import NextSongButton from "../components/atoms/NextSongButton";
+import FeedbackButtons from "../components/molecules/FeedbackButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
 
@@ -23,13 +25,17 @@ type TrackLoadState =
 export default function Home() {
   const [requestId, setRequestId] = useState(0);
   const [state, setState] = useState<TrackLoadState>({ status: "loading" });
+  const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
     setState({ status: "loading" });
     void fetchStaleWhiskeyTrack(controller.signal)
-      .then((track) => setState({ status: "ready", track }))
+      .then((track) => {
+        setState({ status: "ready", track });
+        setFeedback(null);
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) {
           return;
@@ -76,13 +82,13 @@ export default function Home() {
           <NextSongButton />
           <audio
             key={state.track.id}
-                      controls
-                      
+            controls
             preload="metadata"
             src={state.track.streamUrl}
           >
             お使いのブラウザは音声再生に対応していません。
           </audio>
+          <FeedbackButtons value={feedback} onChange={setFeedback} />
           {state.track.audiusUrl && (
             <p>
               <a href={state.track.audiusUrl} target="_blank" rel="noreferrer">
