@@ -74,7 +74,8 @@ export default function Home() {
           )}
           <audio
             key={state.track.id}
-            controls
+                      controls
+                      
             preload="metadata"
             src={state.track.streamUrl}
           >
