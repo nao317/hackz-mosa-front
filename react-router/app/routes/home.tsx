@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
+import NextSongButton from "../components/atoms/NextSongButton";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
 
@@ -72,6 +73,7 @@ export default function Home() {
               alt={`${state.track.title}のアートワーク`}
             />
           )}
+          <NextSongButton />
           <audio
             key={state.track.id}
             controls
