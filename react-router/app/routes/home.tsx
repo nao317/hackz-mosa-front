@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
+import type { FeedbackValue } from "../components/atoms/FeedbackButton";
+import NextSongButton from "../components/atoms/NextSongButton";
+import FeedbackButtons from "../components/molecules/FeedbackButtons";
+import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
 
@@ -20,15 +24,24 @@ type TrackLoadState =
   | { status: "error"; message: string };
 
 export default function Home() {
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [requestId, setRequestId] = useState(0);
   const [state, setState] = useState<TrackLoadState>({ status: "loading" });
+  const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackError, setPlaybackError] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
     setState({ status: "loading" });
+    setIsPlaying(false);
+    setPlaybackError(null);
     void fetchStaleWhiskeyTrack(controller.signal)
-      .then((track) => setState({ status: "ready", track }))
+      .then((track) => {
+        setState({ status: "ready", track });
+        setFeedback(null);
+      })
       .catch((error: unknown) => {
         if (controller.signal.aborted) {
           return;
@@ -45,6 +58,28 @@ export default function Home() {
 
     return () => controller.abort();
   }, [requestId]);
+
+  function handlePlayPause() {
+    const audio = audioRef.current;
+
+    if (!audio) {
+      return;
+    }
+
+    setPlaybackError(null);
+
+    if (!audio.paused) {
+      audio.pause();
+      return;
+    }
+
+    void audio.play().catch((error: unknown) => {
+      setIsPlaying(false);
+      setPlaybackError(
+        error instanceof Error ? error.message : "楽曲を再生できませんでした。",
+      );
+    });
+  }
 
   return (
     <main>
@@ -72,15 +107,28 @@ export default function Home() {
               alt={`${state.track.title}のアートワーク`}
             />
           )}
+          <NextSongButton />
           <audio
+            ref={audioRef}
             key={state.track.id}
-                      controls
-                      
             preload="metadata"
             src={state.track.streamUrl}
+            onPlay={() => setIsPlaying(true)}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
+            onError={() => {
+              setIsPlaying(false);
+              setPlaybackError("楽曲を読み込めませんでした。");
+            }}
           >
             お使いのブラウザは音声再生に対応していません。
           </audio>
+          <PlayButtons
+            isPlaying={isPlaying}
+            onToggle={handlePlayPause}
+          />
+          {playbackError && <p role="alert">{playbackError}</p>}
+          <FeedbackButtons value={feedback} onChange={setFeedback} />
           {state.track.audiusUrl && (
             <p>
               <a href={state.track.audiusUrl} target="_blank" rel="noreferrer">
