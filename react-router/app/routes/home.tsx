@@ -76,7 +76,8 @@ export default function Home() {
           <NextSongButton />
           <audio
             key={state.track.id}
-            controls
+                      controls
+                      
             preload="metadata"
             src={state.track.streamUrl}
           >
