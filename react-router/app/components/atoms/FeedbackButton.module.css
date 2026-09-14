@@ -2,13 +2,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 54px;
+  height: 54px;
   padding: 0;
   color: #111111;
   background-color: #ffffff;
   border: 1px solid #111111;
-  border-radius: 50%;
+  border-radius: 2px;
   cursor: pointer;
   transition:
     color 150ms ease,
@@ -24,7 +24,7 @@
 .button[data-selected="true"] {
   color: #ffffff;
   background-color: #111111;
-  border-color: #111111;
+  border-color: #ffffff;
 }
 
 .button:focus-visible {
@@ -35,22 +35,4 @@
 .button:disabled {
   cursor: not-allowed;
   opacity: 0.4;
-}
-
-@media (prefers-color-scheme: dark) {
-  .button {
-    color: #ffffff;
-    background-color: #111111;
-    border-color: #ffffff;
-  }
-
-  .button:hover:not(:disabled) {
-    background-color: #262626;
-  }
-
-  .button[data-selected="true"] {
-    color: #111111;
-    background-color: #ffffff;
-    border-color: #ffffff;
-  }
 }
