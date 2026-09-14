@@ -5,9 +5,9 @@
   width: 44px;
   height: 44px;
   padding: 0;
-  color: #374151;
+  color: #111111;
   background-color: #ffffff;
-  border: 1px solid #d1d5db;
+  border: 1px solid #111111;
   border-radius: 50%;
   cursor: pointer;
   transition:
@@ -19,19 +19,12 @@
 
 .button:hover:not(:disabled) {
   background-color: #f3f4f6;
-  border-color: #9ca3af;
 }
 
-.button[data-kind="good"][data-selected="true"] {
-  color: #166534;
-  background-color: #dcfce7;
-  border-color: #22c55e;
-}
-
-.button[data-kind="bad"][data-selected="true"] {
-  color: #991b1b;
-  background-color: #fee2e2;
-  border-color: #ef4444;
+.button[data-selected="true"] {
+  color: #ffffff;
+  background-color: #111111;
+  border-color: #111111;
 }
 
 .button:focus-visible {
@@ -46,25 +39,18 @@
 
 @media (prefers-color-scheme: dark) {
   .button {
-    color: #d1d5db;
-    background-color: #111827;
-    border-color: #4b5563;
+    color: #ffffff;
+    background-color: #111111;
+    border-color: #ffffff;
   }
 
   .button:hover:not(:disabled) {
-    background-color: #1f2937;
-    border-color: #9ca3af;
+    background-color: #262626;
   }
 
-  .button[data-kind="good"][data-selected="true"] {
-    color: #86efac;
-    background-color: #14532d;
-    border-color: #22c55e;
-  }
-
-  .button[data-kind="bad"][data-selected="true"] {
-    color: #fca5a5;
-    background-color: #7f1d1d;
-    border-color: #ef4444;
+  .button[data-selected="true"] {
+    color: #111111;
+    background-color: #ffffff;
+    border-color: #ffffff;
   }
 }
