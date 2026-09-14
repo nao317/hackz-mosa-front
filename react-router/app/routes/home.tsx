@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
 import NextSongButton from "../components/atoms/NextSongButton";
+import Slider from "../components/atoms/Slider";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
 
@@ -23,6 +24,7 @@ type TrackLoadState =
 export default function Home() {
   const [requestId, setRequestId] = useState(0);
   const [state, setState] = useState<TrackLoadState>({ status: "loading" });
+  const [parameter, setParameter] = useState(42);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,6 +76,15 @@ export default function Home() {
             />
           )}
           <NextSongButton />
+
+          <div style={{ marginTop: 24, maxWidth: 420 }}>
+            <Slider
+              step={1}
+              value={parameter}
+              onChange={setParameter}
+            />
+          </div>
+
           <audio
             key={state.track.id}
                       controls
