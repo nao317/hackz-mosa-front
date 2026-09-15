@@ -1,11 +1,18 @@
-import { selectPlayableTrack, type PlayableTrack } from "./audius";
+import { selectPlayableTracks, type PlayableTrack } from "./audius";
 
-const STALE_WHISKEY_TRACK_URL = "https://api.audius.co/v1/tracks/RKjXQ";
+const AUDIUS_SEARCH_URL = "https://api.audius.co/v1/tracks/search";
 
-export async function fetchStaleWhiskeyTrack(
+export async function searchAudiusTracks(
+  query: string,
   signal?: AbortSignal,
-): Promise<PlayableTrack> {
-  const response = await fetch(STALE_WHISKEY_TRACK_URL, {
+): Promise<PlayableTrack[]> {
+  const normalizedQuery = query.trim();
+  if (!normalizedQuery) {
+    return [];
+  }
+
+  const params = new URLSearchParams({ query: normalizedQuery });
+  const response = await fetch(`${AUDIUS_SEARCH_URL}?${params}`, {
     headers: { Accept: "application/json" },
     signal,
   });
@@ -14,5 +21,5 @@ export async function fetchStaleWhiskeyTrack(
     throw new Error(`Audius API request failed with ${response.status}.`);
   }
 
-  return selectPlayableTrack(await response.json());
+  return selectPlayableTracks(await response.json());
 }

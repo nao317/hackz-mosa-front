@@ -5,7 +5,7 @@
 }
 
 .label {
-  color: #d9e2ec;
+  color: #d4d4d4;
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -15,15 +15,9 @@
   align-items: center;
   width: 100%;
   min-height: 2.75rem;
-  border: 1px solid rgba(217, 226, 236, 0.35);
+  border: 1px solid #515151;
   border-radius: 0.45rem;
-  background: rgba(18, 27, 38, 0.82);
-  transition: border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.field:focus-within {
-  border-color: #8dd7d1;
-  box-shadow: 0 0 0 3px rgba(141, 215, 209, 0.18);
+  background: #1b1b1b;
 }
 
 .input {
@@ -38,7 +32,7 @@
 }
 
 .input::placeholder {
-  color: #92a2b2;
+  color: #8f8f8f;
 }
 
 .button {
@@ -48,12 +42,13 @@
   flex: 0 0 2.5rem;
   place-items: center;
   border: 0;
-  color: #016572;
+  color: #d4af37;
+  background: transparent;
   cursor: pointer;
 }
 
 .button:hover:not(:disabled) {
-  color: #b1ebe5;
+  color: #ffffff;
 }
 
 .button:disabled {
