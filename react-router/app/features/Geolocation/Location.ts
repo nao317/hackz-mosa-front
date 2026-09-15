@@ -1,7 +1,7 @@
 const geolocationOptions: PositionOptions = {
-  enableHighAccuracy: false,
+  enableHighAccuracy: true,
   timeout: 10_000,
-  maximumAge: 5 * 60_000,
+  maximumAge: 0,
 };
 
 export type Location = {
@@ -86,33 +86,98 @@ export function startLocationPolling(
 ): () => void {
   let stopped = false;
 
-  const fetchLocation = () => {
-    void getCurrentLocation()
-      .then((location) => {
-        if (!stopped) {
-          onSuccess(location);
-        }
-      })
-      .catch((error: unknown) => {
-        if (!stopped) {
-          onError(
-            error instanceof LocationError
-              ? error
-              : new LocationError(
-                  "LOCATION_UNAVAILABLE",
-                  "現在地を取得できませんでした。",
-                ),
-          );
-        }
-      });
+  if (!navigator.geolocation) {
+    onError(
+      new LocationError(
+        "LOCATION_UNSUPPORTED",
+        "このブラウザは位置情報の取得に対応していません。",
+      ),
+    );
+    return () => {
+      stopped = true;
+    };
+  }
+
+  const handleSuccess = (position: GeolocationPosition) => {
+    if (stopped) {
+      return;
+    }
+
+    onSuccess({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      capturedAt: position.timestamp,
+    });
   };
 
-  fetchLocation();
-  const intervalId = window.setInterval(fetchLocation, 60_000);
+  const handleError = (error: GeolocationPositionError) => {
+    if (stopped) {
+      return;
+    }
+
+    const errorByCode: Record<
+      1 | 2 | 3,
+      { code: LocationErrorCode; message: string }
+    > = {
+      1: {
+        code: "LOCATION_PERMISSION_DENIED",
+        message: "位置情報の利用が許可されていません。",
+      },
+      2: {
+        code: "LOCATION_UNAVAILABLE",
+        message: "現在地を取得できませんでした。",
+      },
+      3: {
+        code: "LOCATION_TIMEOUT",
+        message: "現在地の取得がタイムアウトしました。",
+      },
+    };
+
+    const locationError = errorByCode[error.code as 1 | 2 | 3];
+    onError(
+      new LocationError(
+        locationError?.code ?? "LOCATION_UNAVAILABLE",
+        locationError?.message ?? "現在地を取得できませんでした。",
+      ),
+    );
+  };
+
+  const watchId = navigator.geolocation.watchPosition(
+    handleSuccess,
+    handleError,
+    geolocationOptions,
+  );
+
+  const handleVisibilityChange = () => {
+    if (!stopped && document.visibilityState === "visible") {
+      void getCurrentLocation()
+        .then((location) => {
+          if (!stopped) {
+            onSuccess(location);
+          }
+        })
+        .catch((error: unknown) => {
+          if (!stopped) {
+            onError(
+              error instanceof LocationError
+                ? error
+                : new LocationError(
+                    "LOCATION_UNAVAILABLE",
+                    "現在地を取得できませんでした。",
+                  ),
+            );
+          }
+        });
+    }
+  };
+
+  document.addEventListener("visibilitychange", handleVisibilityChange);
 
   return () => {
     stopped = true;
-    window.clearInterval(intervalId);
+    navigator.geolocation.clearWatch(watchId);
+    document.removeEventListener("visibilitychange", handleVisibilityChange);
   };
 }
 
