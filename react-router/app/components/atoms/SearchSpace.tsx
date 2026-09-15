@@ -42,7 +42,7 @@ export default function SearchSpace({
 			</label>
 			<div className={styles.field}>
 				<input
-					  id={inputId}
+					id={inputId}
 					className={styles.input}
 					type="search"
 					value={value}

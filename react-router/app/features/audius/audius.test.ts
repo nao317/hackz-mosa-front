@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { selectPlayableTrack } from "./audius";
+import {
+  getSelectedTrackFromNavigation,
+  selectPlayableTrack,
+  selectPlayableTracks,
+} from "./audius";
 
 describe("selectPlayableTrack", () => {
   it("maps a single track response", () => {
@@ -62,6 +66,14 @@ describe("selectPlayableTrack", () => {
           user: { name: "Artist" },
         },
         {
+          id: "unavailable",
+          title: "Unavailable",
+          is_stream_gated: false,
+          is_streamable: false,
+          access: { stream: true },
+          user: { name: "Artist" },
+        },
+        {
           id: "disabled",
           title: "Disabled",
           is_stream_gated: false,
@@ -91,5 +103,50 @@ describe("selectPlayableTrack", () => {
     expect(() => selectPlayableTrack({})).toThrow(
       "Audius API returned an invalid response.",
     );
+  });
+
+  it("maps every public streamable search result", () => {
+    const tracks = selectPlayableTracks({
+      data: [
+        {
+          id: "first",
+          title: "First",
+          is_stream_gated: false,
+          access: { stream: true },
+          user: { name: "Artist" },
+        },
+        {
+          id: "gated",
+          title: "Gated",
+          is_stream_gated: true,
+          access: { stream: true },
+          user: { name: "Artist" },
+        },
+        {
+          id: "second",
+          title: "Second",
+          is_stream_gated: false,
+          access: { stream: true },
+          user: { name: "Artist" },
+        },
+      ],
+    });
+
+    expect(tracks.map((track) => track.id)).toEqual(["first", "second"]);
+  });
+
+  it("reads a valid selected track from navigation state", () => {
+    expect(
+      getSelectedTrackFromNavigation({
+        selectedTrack: {
+          id: "track-id",
+          title: "Track title",
+          artist: "Artist",
+          streamUrl: "https://api.audius.co/v1/tracks/track-id/stream",
+          source: "audius",
+        },
+      })?.id,
+    ).toBe("track-id");
+    expect(getSelectedTrackFromNavigation({ selectedTrack: null })).toBeUndefined();
   });
 });
