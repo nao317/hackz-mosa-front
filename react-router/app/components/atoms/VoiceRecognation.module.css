@@ -1,0 +1,98 @@
+.button {
+	display: grid;
+	position: relative;
+	width: 2.5rem;
+	height: 2.5rem;
+	flex: 0 0 2.5rem;
+	place-items: center;
+	border: 0;
+	border-radius: 50%;
+	color: #d4af37;
+	background: transparent;
+	cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+	color: #ffffff;
+}
+
+.button.listening {
+	color: #171717;
+	background: #d4af37;
+	box-shadow: 0 0 0 0 rgb(212 175 55 / 55%);
+	animation: pulse 1.4s ease-out infinite;
+}
+
+.icon {
+	position: relative;
+	z-index: 1;
+	display: grid;
+	place-items: center;
+}
+
+.soundBars {
+	display: flex;
+	position: absolute;
+	bottom: -0.35rem;
+	left: 50%;
+	width: 1.5rem;
+	height: 0.55rem;
+	justify-content: center;
+	align-items: center;
+	gap: 0.12rem;
+	transform: translateX(-50%);
+}
+
+.soundBars span {
+	display: block;
+	width: 0.16rem;
+	height: 0.28rem;
+	border-radius: 999px;
+	background: #d4af37;
+	animation: soundWave 0.75s ease-in-out infinite alternate;
+}
+
+.soundBars span:nth-child(2) {
+	animation-delay: -0.45s;
+}
+
+.soundBars span:nth-child(3) {
+	height: 0.5rem;
+	animation-delay: -0.2s;
+}
+
+.soundBars span:nth-child(4) {
+	animation-delay: -0.6s;
+}
+
+.soundBars span:nth-child(5) {
+	height: 0.4rem;
+	animation-delay: -0.35s;
+}
+
+.button:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+
+
+@keyframes pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgb(212 175 55 / 55%);
+	}
+	70% {
+		box-shadow: 0 0 0 0.7rem rgb(212 175 55 / 0%);
+	}
+	100% {
+		box-shadow: 0 0 0 0 rgb(212 175 55 / 0%);
+	}
+}
+
+@keyframes soundWave {
+	from {
+		transform: scaleY(0.45);
+	}
+	to {
+		transform: scaleY(1.35);
+	}
+}
