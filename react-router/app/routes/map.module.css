@@ -1,0 +1,14 @@
+.page {
+	box-sizing: border-box;
+	width: min(100%, 960px);
+	min-height: 100dvh;
+	margin: 0 auto;
+	padding: 24px;
+	color: #ffffff;
+	background: #050505;
+}
+
+.page h1 {
+	margin: 0 0 20px;
+	font-size: 1.5rem;
+}

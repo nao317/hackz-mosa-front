@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Home, Menu, Search, User, X } from "lucide-react";
+import { Home, Map, Menu, Search, User, X } from "lucide-react";
 import { NavLink } from "react-router";
 
 import styles from "./Sidebar.module.css";
@@ -96,6 +96,16 @@ export default function Sidebar({ isOpen, onClose, onOpen }: SidebarProps) {
           >
             <Search aria-hidden="true" size={19} />
             <span>検索</span>
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              `${styles.navLink} ${isActive ? styles.activeLink : ""}`
+            }
+            to="/map"
+            onClick={closeSidebar}
+          >
+            <Map aria-hidden="true" size={19} />
+            <span>マップ</span>
           </NavLink>
           <NavLink
             className={({ isActive }) =>
