@@ -115,9 +115,9 @@
 }
 
 .progress {
-  --slider-active: #ffffff;
-  --slider-inactive: #737373;
-  --slider-thumb: #d4d4d4;
+  --slider-active: #d4af37;
+  --slider-inactive: #ffffff;
+  --slider-thumb: #d4af37;
 
   margin-top: clamp(8px, 2.8dvh, 20px);
 }
