@@ -75,6 +75,7 @@
   width: 100%;
   min-height: 44px;
   padding-bottom: 12px;
+  box-sizing: border-box;
 }
 
 .clockTime {
@@ -214,5 +215,13 @@
   .autoModeControl {
     top: 12px;
     right: 12px;
+    width: min(140px, calc(100% - 80px));
+    padding: 0 6px;
+    background: #050505;
+  }
+
+  .clockArea {
+    min-height: 88px;
+    padding-top: 44px;
   }
 }

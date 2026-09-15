@@ -55,3 +55,9 @@
 .player audio {
 	width: 100%;
 }
+
+@media (max-width: 767px) {
+	.page {
+		padding-top: 68px;
+	}
+}
