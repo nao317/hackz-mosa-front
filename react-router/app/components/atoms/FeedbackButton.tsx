@@ -33,9 +33,9 @@ export default function FeedbackButton({
       onClick={onClick}
     >
       <Icon
+        className={styles.icon}
         aria-hidden="true"
         size={22}
-        fill={selected ? "currentColor" : "none"}
       />
     </button>
   );
