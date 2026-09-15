@@ -48,6 +48,7 @@ export default function MapPage() {
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [query, setQuery] = useState("");
 	const [tracks, setTracks] = useState<PlayableTrack[]>([]);
+	const [selectedTrack, setSelectedTrack] = useState<PlayableTrack>();
 	const [area, setArea] = useState<LatLngTuple[]>([]);
 	const [location, setLocation] = useState<Location>();
 	const [isInside, setIsInside] = useState(false);
