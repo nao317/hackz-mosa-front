@@ -1,5 +1,6 @@
 .wrapper {
 	display: grid;
+	grid-template-rows: auto auto minmax(0, 1fr);
 	gap: 12px;
 	width: 100%;
 }

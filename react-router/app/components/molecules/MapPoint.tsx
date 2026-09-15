@@ -2,12 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import type { LatLng, LatLngExpression, LatLngTuple } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import { getCurrentLocation, type Location } from "../../features/Geolocation/Location";
+import {
+	startLocationPolling,
+	type Location,
+} from "../../features/Geolocation/Location";
 import styles from "./MapPoint.module.css";
 
 type MapPointProps = {
 	onPointsChange?: (points: LatLngTuple[]) => void;
 	onAreaChange?: (area: LatLngTuple[]) => void;
+	onLocationChange?: (location: Location) => void;
 };
 
 function MapInteraction({
@@ -109,6 +113,7 @@ function toTuple(latlng: LatLng): LatLngTuple {
 export default function MapPoint({
 	onPointsChange,
 	onAreaChange,
+	onLocationChange,
 }: MapPointProps) {
 	const [leafletComponents, setLeafletComponents] = useState<
 		typeof import("react-leaflet") | null
@@ -120,16 +125,15 @@ export default function MapPoint({
 
 	useEffect(() => {
 		void import("react-leaflet").then(setLeafletComponents);
-		void getCurrentLocation()
-			.then(setLocation)
-			.catch((error: unknown) => {
-				setLocationError(
-					error instanceof Error
-						? error.message
-						: "現在地を取得できませんでした。",
-				);
-			});
-	}, []);
+		return startLocationPolling(
+			(nextLocation) => {
+				setLocation(nextLocation);
+				onLocationChange?.(nextLocation);
+				setLocationError(null);
+			},
+			(error) => setLocationError(error.message),
+		);
+	}, [onLocationChange]);
 
 	function addPoint(point: LatLngTuple) {
 		setPoints((currentPoints) => {
@@ -208,6 +212,13 @@ export default function MapPoint({
 				{points.map((point, index) => (
 					<CircleMarker center={point} radius={8} key={`${point.join("-")}-${index}`} />
 				))}
+				{location && (
+					<CircleMarker
+						center={[location.latitude, location.longitude]}
+						radius={7}
+						pathOptions={{ color: "#d4af37", fillColor: "#d4af37" }}
+					/>
+				)}
 				{area.length > 1 && <Polyline positions={area as LatLngExpression[]} />}
 			</MapContainer>
 		</section>
