@@ -9,7 +9,14 @@ html,
 body {
   @apply bg-white dark:bg-gray-950;
 
+  margin: 0;
+
   @media (prefers-color-scheme: dark) {
     color-scheme: dark;
   }
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
 }

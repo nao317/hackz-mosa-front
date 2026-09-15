@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Cloud,
   CloudFog,
@@ -15,6 +15,7 @@ import Artwork from "../components/atoms/Artwork";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
 import Slider from "../components/atoms/Slider";
 import PlayButtons from "../components/molecules/PlayButtons";
+import Sidebar from "../components/molecules/Sidebar";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
 import { startLocationPolling } from "../features/Geolocation/Location";
@@ -23,7 +24,7 @@ import styles from "./home.module.css";
 
 export function meta() {
   return [
-    { title: "Audius streaming spike" },
+    { title: "Home" },
     {
       name: "description",
       content: "Audius API connection and streaming playback spike",
@@ -90,6 +91,9 @@ export default function Home() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const openSidebar = useCallback(() => setIsSidebarOpen(true), []);
+  const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
   useEffect(() => {
     return startLocationPolling(
@@ -192,25 +196,31 @@ export default function Home() {
       ? duration || state.track.durationSeconds || 1
       : 1;
   return (
-    <main className={styles.page}>
-      <h1 className={styles.visuallyHidden}>Audius streaming spike</h1>
+    <div className={styles.appShell}>
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onOpen={openSidebar}
+        onClose={closeSidebar}
+      />
+      <main className={styles.page}>
+        <h1 className={styles.visuallyHidden}>Home</h1>
 
-      {state.status === "loading" && (
-        <p className={styles.statusMessage}>楽曲を取得しています。</p>
-      )}
+        {state.status === "loading" && (
+          <p className={styles.statusMessage}>楽曲を取得しています。</p>
+        )}
 
-      {state.status === "error" && (
-        <section className={styles.errorMessage} aria-live="polite">
-          <p>楽曲を取得できませんでした。</p>
-          <pre>{state.message}</pre>
-          <button type="button" onClick={() => setRequestId((id) => id + 1)}>
-            再試行
-          </button>
-        </section>
-      )}
+        {state.status === "error" && (
+          <section className={styles.errorMessage} aria-live="polite">
+            <p>楽曲を取得できませんでした。</p>
+            <pre>{state.message}</pre>
+            <button type="button" onClick={() => setRequestId((id) => id + 1)}>
+              再試行
+            </button>
+          </section>
+        )}
 
-      {state.status === "ready" && (
-        <section className={styles.player}>
+        {state.status === "ready" && (
+          <section className={styles.player}>
           <div className={styles.clockArea}>
             {clockTime && (
               <time
@@ -329,9 +339,9 @@ export default function Home() {
               {playbackError}
             </p>
           )}
-
-        </section>
-      )}
-    </main>
+          </section>
+        )}
+      </main>
+    </div>
   );
 }

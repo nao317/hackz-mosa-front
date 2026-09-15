@@ -1,5 +1,16 @@
+.appShell {
+  display: flex;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: #050505;
+}
+
 .page {
   display: grid;
+  flex: 1;
+  min-width: 0;
   height: 100vh;
   height: 100dvh;
   padding: 0 12px;
