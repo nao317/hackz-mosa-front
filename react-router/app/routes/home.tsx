@@ -2,11 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import Artwork from "../components/atoms/Artwork";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
-import NextSongButton, {
-  PreviousSongButton,
-} from "../components/atoms/NextSongButton";
 import Slider from "../components/atoms/Slider";
-import FeedbackButtons from "../components/molecules/FeedbackButtons";
 import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
@@ -27,6 +23,12 @@ type TrackLoadState =
   | { status: "ready"; track: PlayableTrack }
   | { status: "error"; message: string };
 
+const clockTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [requestId, setRequestId] = useState(0);
@@ -36,6 +38,18 @@ export default function Home() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [clockTime, setClockTime] = useState("");
+
+  useEffect(() => {
+    function updateClockTime() {
+      setClockTime(clockTimeFormatter.format(new Date()));
+    }
+
+    updateClockTime();
+    const intervalId = window.setInterval(updateClockTime, 1_000);
+
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,6 +137,18 @@ export default function Home() {
 
       {state.status === "ready" && (
         <section className={styles.player}>
+          <div className={styles.clockArea}>
+            {clockTime && (
+              <time
+                className={styles.clockTime}
+                dateTime={clockTime}
+                aria-label={`現在時刻 ${clockTime}`}
+              >
+                {clockTime}
+              </time>
+            )}
+          </div>
+
           <div className={styles.artworkFrame}>
             {state.track.artworkUrl ? (
               <Artwork
@@ -192,20 +218,12 @@ export default function Home() {
             お使いのブラウザは音声再生に対応していません。
           </audio>
 
-          <div
-            className={styles.transportControls}
-            role="group"
-            aria-label="再生操作"
-          >
-            <PreviousSongButton disabled />
-            <div className={styles.playControl}>
-              <PlayButtons
-                isPlaying={isPlaying}
-                onToggle={handlePlayPause}
-              />
-            </div>
-            <NextSongButton disabled />
-          </div>
+          <PlayButtons
+            isPlaying={isPlaying}
+            onToggle={handlePlayPause}
+            feedback={feedback}
+            onFeedbackChange={setFeedback}
+          />
 
           {playbackError && (
             <p className={styles.playbackError} role="alert">
@@ -213,9 +231,6 @@ export default function Home() {
             </p>
           )}
 
-          <div className={styles.feedbackControls}>
-            <FeedbackButtons value={feedback} onChange={setFeedback} />
-          </div>
         </section>
       )}
     </main>
