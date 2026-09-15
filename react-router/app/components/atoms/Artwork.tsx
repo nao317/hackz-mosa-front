@@ -1,8 +1,9 @@
 type ArtworkProps = {
-    src: string;
-    alt: string;
+  src: string;
+  alt: string;
+  className?: string;
 };
 
-export default function Artwork({ src, alt }: ArtworkProps) {
-    return <img src={src} alt={alt} width="240" height="240" />;
+export default function Artwork({ src, alt, className }: ArtworkProps) {
+  return <img className={className} src={src} alt={alt} />;
 }
