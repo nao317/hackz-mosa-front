@@ -20,6 +20,19 @@ Firebase Authenticationでは次のプロバイダーを有効にする。
 - メールアドレス / パスワード
 - Google
 
+### OAuthの許可ドメイン
+
+Firebase Consoleの `Authentication > Settings > Authorized domains` に、
+フロントエンドを配信するホスト名を登録する。本番環境では次を登録する。
+
+```text
+hackzmosa.yellowtail.work
+```
+
+プロトコルやパスは含めず、ホスト名だけを入力する。ローカルでOAuthを確認する場合は
+`localhost` も登録する。2025年4月28日以降に作成されたFirebaseプロジェクトでは、
+`localhost` は初期状態で許可されない。
+
 ## Go API
 
 ### `POST /api/v1/auth/login`
