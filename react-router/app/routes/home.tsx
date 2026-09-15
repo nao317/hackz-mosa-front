@@ -55,6 +55,8 @@ export default function Home() {
       (location) => setLocationState({ status: "ready", location }),
       (error) => setLocationState({ status: "error", message: error.message }),
     );
+  }, []);
+
   const [clockTime, setClockTime] = useState("");
 
   useEffect(() => {
