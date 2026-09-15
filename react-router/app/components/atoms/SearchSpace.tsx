@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 
 import styles from "./SearchSpace.module.css";
 import VoiceRecognation from "./VoiceRecognation";
+import ImageRecognation from "./ImageRecognation";
 
 type SearchSpaceProps = {
 	value: string;
@@ -59,6 +60,7 @@ export default function SearchSpace({
 						disabled={disabled}
 					/>
 				)}
+				<ImageRecognation />
 				<button
 					className={styles.button}
 					type="submit"
