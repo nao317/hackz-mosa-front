@@ -4,6 +4,9 @@
 
 MVPで実装する以下の4機能について、機能要件、採用技術、責務、データ契約、処理フロー、テスト方針を定義する。
 
+認証は本書作成後に追加されたスコープである。認証に関する現在の仕様は
+[`auth-integration.md`](auth-integration.md) を優先する。
+
 - 楽曲を再生する
 - 現在時刻を取得する
 - 現在地を取得する
@@ -35,7 +38,7 @@ Geolocation APIはHTTPSのセキュアコンテキストとユーザー許可を
 本設計では以下を前提とする。前提が変わる場合は「14. 未決事項と判断ポイント」を再確認する。
 
 - MVPはハッカソン・検証用途の非商用サービスである。
-- MVPではユーザー認証を行わない。
+- 認証は追加スコープとしてFirebase AuthenticationとGo APIで提供する。
 - MVPでは楽曲検索、レコメンド、プレイリスト作成を行わない。
 - 再生対象はプロジェクトが配信権を保有する、または利用条件を満たす音源である。
 - 対象ブラウザは、直近のChrome、Edge、Safari、Firefoxとする。
@@ -572,7 +575,7 @@ MVP実装:
 | 機能 | 追加する責務 | MVPから再利用するもの |
 | --- | --- | --- |
 | エリア内で流す曲を設定 | Area定義、座標からArea判定、AreaとTrackの関連 | `LocationSnapshot`、`TrackCatalog` |
-| 認証 | session、user、OAuth provider | React Router resource/action境界 |
+| 認証（実装済み） | Firebase Auth、Go API、PostgreSQL user | マイページの認証UI |
 | Good / Bad | Feedback entity、永続化API | `Track.id`、`EnvironmentSnapshot` |
 | レコメンド | 特徴量生成、候補生成、ranking | `WeatherCondition`、instant、Track |
 | 検索 | catalog検索adapter、検索UI | `TrackCatalog` |

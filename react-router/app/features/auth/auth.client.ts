@@ -3,7 +3,6 @@ import {
   createUserWithEmailAndPassword,
   getAuth,
   GoogleAuthProvider,
-  OAuthProvider,
   onAuthStateChanged,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
@@ -55,13 +54,33 @@ function toAuthUser(user: User): AuthUser {
   };
 }
 
-async function syncSessionWithBackend(user: User): Promise<void> {
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+let pendingBackendSync:
+  | { firebaseUid: string; promise: Promise<void> }
+  | undefined;
+
+function syncUserWithBackend(user: User): Promise<void> {
+  if (pendingBackendSync?.firebaseUid === user.uid) {
+    return pendingBackendSync.promise;
+  }
+
+  const promise = performBackendSync(user).finally(() => {
+    if (pendingBackendSync?.promise === promise) {
+      pendingBackendSync = undefined;
+    }
+  });
+  pendingBackendSync = { firebaseUid: user.uid, promise };
+  return promise;
+}
+
+async function performBackendSync(user: User): Promise<void> {
+  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(
+    /\/$/,
+    "",
+  );
 
   const idToken = await user.getIdToken();
-  const response = await fetch(`${apiBaseUrl}/api/auth/session`, {
+  const response = await fetch(`${apiBaseUrl}/api/v1/auth/login`, {
     method: "POST",
-    credentials: "include",
     headers: {
       Accept: "application/json",
       Authorization: `Bearer ${idToken}`,
@@ -74,39 +93,33 @@ async function syncSessionWithBackend(user: User): Promise<void> {
 }
 
 async function finishSignIn(user: User): Promise<AuthUser> {
-  await syncSessionWithBackend(user);
+  await syncUserWithBackend(user);
   return toAuthUser(user);
 }
 
 export function observeAuthState(
   onChange: (user: AuthUser | null) => void,
+  onError: (error: unknown) => void = () => undefined,
 ): () => void {
   if (!hasFirebaseConfig()) {
     onChange(null);
     return () => undefined;
   }
 
-  let isInitialEmission = true;
-
   return onAuthStateChanged(getClientAuth(), (user) => {
-    if (isInitialEmission && user) {
-      void syncSessionWithBackend(user).catch(() => undefined);
+    if (!user) {
+      onChange(null);
+      return;
     }
-    isInitialEmission = false;
-    onChange(user ? toAuthUser(user) : null);
+
+    void syncUserWithBackend(user)
+      .then(() => onChange(toAuthUser(user)))
+      .catch(onError);
   });
 }
 
 export async function signInWithGoogle(): Promise<AuthUser> {
   const result = await signInWithPopup(getClientAuth(), new GoogleAuthProvider());
-  return finishSignIn(result.user);
-}
-
-export async function signInWithApple(): Promise<AuthUser> {
-  const provider = new OAuthProvider("apple.com");
-  provider.addScope("email");
-  provider.addScope("name");
-  const result = await signInWithPopup(getClientAuth(), provider);
   return finishSignIn(result.user);
 }
 
@@ -135,15 +148,7 @@ export async function createAccountWithEmail(
 }
 
 export async function signOutCurrentUser(): Promise<void> {
-  const auth = getClientAuth();
-  const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
-
-  await signOut(auth);
-  await fetch(`${apiBaseUrl}/api/auth/session`, {
-    method: "DELETE",
-    credentials: "include",
-    headers: { Accept: "application/json" },
-  });
+  await signOut(getClientAuth());
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
