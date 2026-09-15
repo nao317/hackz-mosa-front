@@ -9,22 +9,20 @@ VITE_FIREBASE_API_KEY=
 VITE_FIREBASE_AUTH_DOMAIN=
 VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_APP_ID=
-VITE_API_BASE_URL=
+VITE_API_BASE_URL=http://localhost:8080
 ```
 
-`VITE_API_BASE_URL`が空の場合、Go APIはフロントエンドと同じオリジンにあるものとして扱う。
+ローカル開発ではReact Routerが5173、Go APIが8080で起動する。リバースプロキシで同一Originに
+まとめる環境だけ `VITE_API_BASE_URL` を空にする。
 
 Firebase Authenticationでは次のプロバイダーを有効にする。
 
 - メールアドレス / パスワード
 - Google
-- Apple
-
-Apple認証ではFirebaseのコールバックURLをApple DeveloperのReturn URLへ登録する。
 
 ## Go API
 
-### `POST /api/auth/session`
+### `POST /api/v1/auth/login`
 
 Firebaseログイン直後、フロントエンドが次のAuthorizationヘッダーを送信する。
 
@@ -32,10 +30,11 @@ Firebaseログイン直後、フロントエンドが次のAuthorizationヘッ�
 Authorization: Bearer <Firebase ID token>
 ```
 
-GoバックエンドはFirebase Admin SDKの`VerifyIDToken`でトークンを検証し、検証済みの`uid`をアプリ内ユーザーへ関連付ける。Cookieセッションを発行する場合は`HttpOnly`、`Secure`、適切な`SameSite`属性を付ける。
+GoバックエンドはFirebase Admin SDKの`VerifyIDTokenAndCheckRevoked`でトークンを検証し、検証済みの`uid`をPostgreSQLのアプリ内ユーザーへ関連付ける。
 
-### `DELETE /api/auth/session`
+### `GET /api/v1/me`
 
-ログアウト時にサーバー側セッションを破棄する。Firebase側のログアウトとは別に、Go側で発行したCookieやセッションレコードを無効化する。
+認証が必要なリクエストでは、最新のFirebase ID tokenを同じAuthorizationヘッダーで送信する。
+ログアウトはFirebase Client SDKの`signOut`でクライアントの認証状態を破棄する。
 
-フロントエンドとGo APIが異なるオリジンの場合は、Go側で許可するOriginを限定し、credential付きCORSを設定する。
+フロントエンドとGo APIが異なるオリジンの場合は、Go側の`CORS_ALLOWED_ORIGINS`で許可するOriginを限定する。

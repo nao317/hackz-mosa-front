@@ -20,7 +20,6 @@ import {
   createAccountWithEmail,
   observeAuthState,
   requestPasswordReset,
-  signInWithApple,
   signInWithEmail,
   signInWithGoogle,
   signOutCurrentUser,
@@ -30,8 +29,6 @@ import styles from "./mypage.module.css";
 
 const GOOGLE_LOGO_URL =
   "https://developers.google.com/static/identity/images/g-logo.png";
-const APPLE_LOGO_URL =
-  "https://appleid.cdn-apple.com/appleid/button/logo?color=white&border=false&border_radius=0&scale=1&size=48";
 
 type AuthState =
   | { status: "loading" }
@@ -66,7 +63,6 @@ function getAuthErrorMessage(error: unknown): string {
 
 function getProviderLabel(providerId: string): string {
   const labels: Record<string, string> = {
-    "apple.com": "Apple",
     "google.com": "Google",
     password: "メールアドレス",
   };
@@ -87,13 +83,19 @@ export default function MyPage() {
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
   useEffect(() => {
-    return observeAuthState((user) => {
-      setAuthState(
-        user
-          ? { status: "authenticated", user }
-          : { status: "unauthenticated" },
-      );
-    });
+    return observeAuthState(
+      (user) => {
+        setAuthState(
+          user
+            ? { status: "authenticated", user }
+            : { status: "unauthenticated" },
+        );
+      },
+      (error) => {
+        setAuthState({ status: "unauthenticated" });
+        setErrorMessage(getAuthErrorMessage(error));
+      },
+    );
   }, []);
 
   function changeMode(nextMode: AuthMode) {
@@ -188,22 +190,6 @@ export default function MyPage() {
                     <img src={GOOGLE_LOGO_URL} alt="" />
                   </span>
                   <span>Googleで続ける</span>
-                  <span aria-hidden="true" />
-                </button>
-                <button
-                  className={styles.providerButton}
-                  type="button"
-                  disabled={isPending}
-                  onClick={() => void runAuth(signInWithApple)}
-                >
-                  <span className={styles.providerIconFrame}>
-                    <img
-                      className={styles.appleLogo}
-                      src={APPLE_LOGO_URL}
-                      alt=""
-                    />
-                  </span>
-                  <span>Appleで続ける</span>
                   <span aria-hidden="true" />
                 </button>
               </div>

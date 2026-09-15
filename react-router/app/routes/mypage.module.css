@@ -95,15 +95,9 @@
   place-items: center;
 }
 
-.providerIconFrame img:not(.appleLogo) {
+.providerIconFrame img {
   width: 20px;
   height: 20px;
-}
-
-.appleLogo {
-  display: block;
-  width: 48px;
-  height: 48px;
 }
 
 .divider {
