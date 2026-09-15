@@ -150,26 +150,28 @@ export function startLocationPolling(
   );
 
   const handleVisibilityChange = () => {
-    if (!stopped && document.visibilityState === "visible") {
-      void getCurrentLocation()
-        .then((location) => {
-          if (!stopped) {
-            onSuccess(location);
-          }
-        })
-        .catch((error: unknown) => {
-          if (!stopped) {
-            onError(
-              error instanceof LocationError
-                ? error
-                : new LocationError(
-                    "LOCATION_UNAVAILABLE",
-                    "現在地を取得できませんでした。",
-                  ),
-            );
-          }
-        });
+    if (stopped || document.visibilityState !== "visible") {
+      return;
     }
+
+    void getCurrentLocation()
+      .then((location) => {
+        if (!stopped) {
+          onSuccess(location);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!stopped) {
+          onError(
+            error instanceof LocationError
+              ? error
+              : new LocationError(
+                  "LOCATION_UNAVAILABLE",
+                  "現在地を取得できませんでした。",
+                ),
+          );
+        }
+      });
   };
 
   document.addEventListener("visibilitychange", handleVisibilityChange);
