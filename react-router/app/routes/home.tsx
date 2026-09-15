@@ -1,4 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  Cloud,
+  CloudFog,
+  CloudLightning,
+  CloudMoon,
+  CloudRain,
+  CloudSnow,
+  CloudSun,
+  Sun,
+  type LucideIcon,
+} from "lucide-react";
 
 import Artwork from "../components/atoms/Artwork";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
@@ -6,10 +17,8 @@ import Slider from "../components/atoms/Slider";
 import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
-import {
-  startLocationPolling,
-  type Location,
-} from "../features/Geolocation/Location";
+import { startLocationPolling } from "../features/Geolocation/Location";
+import { fetchWeather, type WeatherSnapshot } from "../features/Geolocation/Weather";
 import styles from "./home.module.css";
 
 export function meta() {
@@ -27,17 +36,52 @@ type TrackLoadState =
   | { status: "ready"; track: PlayableTrack }
   | { status: "error"; message: string };
 
-type LocationState =
-  | { status: "loading" }
-  | { status: "ready"; location: Location }
-  | { status: "error"; message: string };
 const clockTimeFormatter = new Intl.DateTimeFormat("ja-JP", {
   hour: "2-digit",
   minute: "2-digit",
   hourCycle: "h23",
 });
 
+function getWeatherIcon(weatherCode: number, isDay: boolean): LucideIcon {
+  if (weatherCode === 0) {
+    return isDay ? Sun : CloudMoon;
+  }
+
+  if (weatherCode === 1 || weatherCode === 2) {
+    return isDay ? CloudSun : Cloud;
+  }
+
+  if (weatherCode === 3) {
+    return Cloud;
+  }
+
+  if (weatherCode === 45 || weatherCode === 48) {
+    return CloudFog;
+  }
+
+  if (
+    [51, 53, 55, 56, 57, 61, 63, 65, 66, 67, 80, 81, 82].includes(
+      weatherCode,
+    )
+  ) {
+    return CloudRain;
+  }
+
+  if ([71, 73, 75, 77, 85, 86].includes(weatherCode)) {
+    return CloudSnow;
+  }
+
+  if ([95, 96, 99].includes(weatherCode)) {
+    return CloudLightning;
+  }
+
+  return Cloud;
+}
+
 export default function Home() {
+  const [weatherData, setWeatherData] = useState<
+    WeatherSnapshot | { message: string } | null
+  >(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [requestId, setRequestId] = useState(0);
   const [state, setState] = useState<TrackLoadState>({ status: "loading" });
@@ -46,14 +90,26 @@ export default function Home() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [locationState, setLocationState] = useState<LocationState>({
-    status: "loading",
-  });
 
   useEffect(() => {
     return startLocationPolling(
-      (location) => setLocationState({ status: "ready", location }),
-      (error) => setLocationState({ status: "error", message: error.message }),
+      (location) => {
+        void fetchWeather(location)
+          .then(setWeatherData)
+          .catch((error: unknown) => {
+            if (error instanceof DOMException && error.name === "AbortError") {
+              return;
+            }
+
+            setWeatherData({
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "天気情報を取得できませんでした。",
+            });
+          });
+      },
+      () => undefined,
     );
   }, []);
 
@@ -135,7 +191,6 @@ export default function Home() {
     state.status === "ready"
       ? duration || state.track.durationSeconds || 1
       : 1;
-
   return (
     <main className={styles.page}>
       <h1 className={styles.visuallyHidden}>Audius streaming spike</h1>
@@ -156,16 +211,6 @@ export default function Home() {
 
       {state.status === "ready" && (
         <section className={styles.player}>
-          <p aria-live="polite">
-            {locationState.status === "loading" && "現在地を取得しています。"}
-            {locationState.status === "error" && locationState.message}
-            {locationState.status === "ready" && (
-              <>
-                現在地: {locationState.location.latitude.toFixed(5)},{" "}
-                {locationState.location.longitude.toFixed(5)}
-              </>
-            )}
-          </p>
           <div className={styles.clockArea}>
             {clockTime && (
               <time
@@ -177,6 +222,31 @@ export default function Home() {
               </time>
             )}
           </div>
+
+          {weatherData && "message" in weatherData ? (
+            <p role="alert">{weatherData.message}</p>
+          ) : weatherData && "temperatureC" in weatherData ? (
+            (() => {
+              const WeatherIcon = getWeatherIcon(
+                weatherData.weatherCode,
+                weatherData.isDay,
+              );
+
+              return (
+                <div
+                  className={styles.weatherIcon}
+                  role="img"
+                  aria-label={weatherData.isDay ? "昼の天気" : "夜の天気"}
+                >
+                  <WeatherIcon aria-hidden="true" size={32} strokeWidth={1.8} />
+                </div>
+              );
+            })()
+          ) : (
+            <div className={styles.weatherIcon} aria-label="天気情報を取得しています。">
+              <Cloud aria-hidden="true" size={32} strokeWidth={1.8} />
+            </div>
+          )}
 
           <div className={styles.artworkFrame}>
             {state.track.artworkUrl ? (
