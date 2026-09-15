@@ -1,15 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { ScanLine, X } from "lucide-react";
+import { useEffect, useRef } from "react";
 import type { GestureRecognizer } from "@mediapipe/tasks-vision";
 
 import styles from "./ImageRecognation.module.css";
-
-type ImageAnalysis = {
-	averageColor: string;
-	brightness: string;
-	width: number;
-	height: number;
-};
 
 type HandGesture = "good" | "bad";
 
@@ -17,16 +9,10 @@ type ImageRecognationProps = {
 	onGesture?: (gesture: HandGesture) => void;
 };
 
-function toHex(value: number): string {
-	return Math.round(value).toString(16).padStart(2, "0");
-}
-
 export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const streamRef = useRef<MediaStream | null>(null);
-	const [analysis, setAnalysis] = useState<ImageAnalysis | null>(null);
-	const [message, setMessage] = useState<string | null>(null);
 
 	function stopCamera() {
 		streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -34,11 +20,6 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 		if (videoRef.current) {
 			videoRef.current.srcObject = null;
 		}
-	}
-
-	function closeCamera() {
-		stopCamera();
-		setMessage("カメラを停止しました。");
 	}
 
 	useEffect(() => {
@@ -70,19 +51,13 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 					runningMode: "VIDEO",
 					numHands: 1,
 				});
-				if (!isStopped) {
-					setMessage(null);
-				}
 			} catch {
-				if (!isStopped) {
-					setMessage("手の認識モデルを読み込めませんでした。");
-				}
+				return;
 			}
 		}
 
 		async function startCamera() {
 			if (!navigator.mediaDevices?.getUserMedia) {
-				setMessage("このブラウザではカメラを利用できません。");
 				return;
 			}
 
@@ -92,7 +67,6 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 					audio: false,
 				});
 				if (isStopped) {
-					stream.getTracks().forEach((track) => track.stop());
 					return;
 				}
 
@@ -104,9 +78,7 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 				video.srcObject = stream;
 				await video.play();
 			} catch {
-				if (!isStopped) {
-					setMessage("カメラへのアクセスが許可されていません。");
-				}
+				return;
 			}
 		}
 
@@ -157,39 +129,10 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 			canvas.height = video.videoHeight;
 			const context = canvas.getContext("2d");
 			if (!context) {
-				setMessage("映像の解析に失敗しました。");
 				return;
 			}
 
 			context.drawImage(video, 0, 0, canvas.width, canvas.height);
-			const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-			let red = 0;
-			let green = 0;
-			let blue = 0;
-			let brightness = 0;
-			for (let index = 0; index < imageData.data.length; index += 4) {
-				red += imageData.data[index];
-				green += imageData.data[index + 1];
-				blue += imageData.data[index + 2];
-				brightness +=
-					0.299 * imageData.data[index] +
-					0.587 * imageData.data[index + 1] +
-					0.114 * imageData.data[index + 2];
-			}
-
-			const pixelCount = imageData.data.length / 4;
-			const averageBrightness = brightness / pixelCount;
-			setAnalysis({
-				averageColor: `#${toHex(red / pixelCount)}${toHex(green / pixelCount)}${toHex(blue / pixelCount)}`,
-				brightness:
-					averageBrightness >= 170
-						? "明るい"
-						: averageBrightness >= 85
-							? "標準"
-							: "暗い",
-				width: canvas.width,
-				height: canvas.height,
-			});
 			animationFrameId = requestAnimationFrame(analyzeFrame);
 		}
 
@@ -206,62 +149,15 @@ export default function ImageRecognation({ onGesture }: ImageRecognationProps) {
 	}, [onGesture]);
 
 	return (
-		<div className={styles.overlay} role="presentation">
-					<section
-						className={styles.dialog}
-						role="dialog"
-						aria-modal="true"
-						aria-labelledby="image-recognition-title"
-					>
-						<header className={styles.header}>
-							<h2 id="image-recognition-title">カメラ映像を解析</h2>
-							<button
-								className={styles.closeButton}
-								type="button"
-								onClick={closeCamera}
-								aria-label="カメラを閉じる"
-							>
-								<X aria-hidden="true" size={20} />
-							</button>
-						</header>
-
-						<div className={styles.previewFrame}>
-							<video
-								ref={videoRef}
-								className={styles.video}
-								muted
-								playsInline
-								aria-label="カメラのライブ映像"
-							/>
-							<ScanLine className={styles.scanLine} aria-hidden="true" size={36} />
-						</div>
-						<canvas ref={canvasRef} className={styles.hiddenCanvas} />
-
-						{message && <p className={styles.message}>{message}</p>}
-						{analysis && (
-							<dl className={styles.analysis}>
-								<div>
-									<dt>平均色</dt>
-									<dd>
-										<span
-											className={styles.colorSwatch}
-											style={{ backgroundColor: analysis.averageColor }}
-										/>
-										{analysis.averageColor}
-									</dd>
-								</div>
-								<div>
-									<dt>明るさ</dt>
-									<dd>{analysis.brightness}</dd>
-								</div>
-								<div>
-									<dt>解像度</dt>
-									<dd>{analysis.width} x {analysis.height}</dd>
-								</div>
-							</dl>
-						)}
-
-					</section>
-		</div>
+		<>
+			<video
+				ref={videoRef}
+				className={styles.recognitionSource}
+				muted
+				playsInline
+				aria-hidden="true"
+			/>
+			<canvas ref={canvasRef} className={styles.recognitionCanvas} aria-hidden="true" />
+		</>
 	);
 }
