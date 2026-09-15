@@ -52,6 +52,8 @@ function getAuthErrorMessage(error: unknown): string {
     "auth/invalid-email": "メールアドレスの形式が正しくありません。",
     "auth/popup-closed-by-user": "認証画面が閉じられました。",
     "auth/too-many-requests": "時間をおいてからもう一度お試しください。",
+    "auth/unauthorized-domain":
+      "このドメインはGoogleログインの許可対象に登録されていません。",
     "auth/weak-password": "パスワードは6文字以上で入力してください。",
   };
 
