@@ -2,12 +2,14 @@ import { type ChangeEvent, type FormEvent, useId } from "react";
 import { Search } from "lucide-react";
 
 import styles from "./SearchSpace.module.css";
+import VoiceRecognation from "./VoiceRecognation";
 import ImageRecognation from "./ImageRecognation";
 
 type SearchSpaceProps = {
 	value: string;
 	onChange: (value: string) => void;
 	onSubmit: (value: string) => void;
+	onVoiceResult?: (value: string) => void;
 	placeholder?: string;
 	label?: string;
 	disabled?: boolean;
@@ -17,6 +19,7 @@ export default function SearchSpace({
 	value,
 	onChange,
 	onSubmit,
+	onVoiceResult,
 	placeholder = "検索",
 	label = "検索",
 	disabled = false,
@@ -51,6 +54,12 @@ export default function SearchSpace({
 					onChange={handleChange}
 					disabled={disabled}
 				/>
+				{onVoiceResult && (
+					<VoiceRecognation
+						onResult={onVoiceResult}
+						disabled={disabled}
+					/>
+				)}
 				<ImageRecognation />
 				<button
 					className={styles.button}

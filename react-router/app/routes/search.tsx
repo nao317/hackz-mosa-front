@@ -81,6 +81,10 @@ export default function SearchPage() {
     runSearch(nextQuery);
   }
 
+  const handleVoiceResult = useCallback((transcript: string) => {
+    setQuery(transcript);
+  }, []);
+
   function handleTrackSelect(track: PlayableTrack) {
     navigate("/", { state: { selectedTrack: track } });
   }
@@ -102,6 +106,7 @@ export default function SearchPage() {
             value={query}
             onChange={setQuery}
             onSubmit={handleSubmit}
+            onVoiceResult={handleVoiceResult}
             placeholder="曲名やアーティスト名"
             label="キーワード"
           />
