@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { LatLngTuple } from "leaflet";
+import { useNavigate } from "react-router";
 
 import SearchSpace from "../components/atoms/SearchSpace";
 import MapPoint from "../components/molecules/MapPoint";
@@ -42,6 +43,7 @@ function isInsideArea(location: Location, area: LatLngTuple[]) {
 }
 
 export default function MapPage() {
+	const navigate = useNavigate();
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [query, setQuery] = useState("");
@@ -131,8 +133,7 @@ export default function MapPage() {
 				errorMessage={errorMessage}
 				selectedTrackId={selectedTrack?.id}
 				onSelect={(track) => {
-					setSelectedTrack(track);
-					setPlaybackError(undefined);
+					navigate("/", { state: { selectedTrack: track } });
 				}}
 			/>
 			<MapPoint
