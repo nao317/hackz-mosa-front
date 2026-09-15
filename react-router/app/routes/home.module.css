@@ -65,6 +65,30 @@
   color: #ffffff;
 }
 
+.locationControls {
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.locationControls button {
+  padding: 8px 12px;
+  color: #111111;
+  background: #ffffff;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.locationControls button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.locationControls p {
+  margin: 8px 0 0;
+}
+
 .artworkFrame {
   flex: 0 0 auto;
   width: min(100%, clamp(120px, calc(100vh - 390px), 285px));
