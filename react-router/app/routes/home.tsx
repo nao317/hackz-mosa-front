@@ -15,6 +15,7 @@ import { useLocation } from "react-router";
 import Artwork from "../components/atoms/Artwork";
 import AutoPlayToggle from "../components/atoms/AutoPlayToggle";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
+import ImageRecognation from "../components/atoms/ImageRecognation";
 import SoundRecognation from "../components/atoms/SoundRecognation";
 import Slider from "../components/atoms/Slider";
 import PlayButtons from "../components/molecules/PlayButtons";
@@ -270,6 +271,10 @@ export default function Home() {
     setDuration(0);
     setFeedback(null);
   }
+
+  const handleHandGesture = useCallback((gesture: FeedbackValue) => {
+    setFeedback(gesture);
+  }, []);
 
   function selectRecommendation(nextIndex: number) {
     const nextTrack = recommendationTracks[nextIndex];
@@ -534,6 +539,8 @@ export default function Home() {
               }
               onNext={canNavigateRecommendations ? handleNext : undefined}
             />
+
+            <ImageRecognation onGesture={handleHandGesture} />
 
             {playbackError && (
               <p className={styles.playbackError} role="alert">

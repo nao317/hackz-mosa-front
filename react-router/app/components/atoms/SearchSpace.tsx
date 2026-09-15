@@ -2,6 +2,7 @@ import { type ChangeEvent, type FormEvent, useId } from "react";
 import { Search } from "lucide-react";
 
 import styles from "./SearchSpace.module.css";
+import ImageRecognation from "./ImageRecognation";
 
 type SearchSpaceProps = {
 	value: string;
@@ -50,6 +51,7 @@ export default function SearchSpace({
 					onChange={handleChange}
 					disabled={disabled}
 				/>
+				<ImageRecognation />
 				<button
 					className={styles.button}
 					type="submit"

@@ -1,0 +1,155 @@
+.trigger,
+.closeButton {
+	display: grid;
+	place-items: center;
+	border: 0;
+	color: #d4af37;
+	background: transparent;
+	cursor: pointer;
+}
+
+.trigger {
+	width: 2.5rem;
+	height: 2.5rem;
+	flex: 0 0 2.5rem;
+}
+
+.trigger:hover:not(:disabled),
+.closeButton:hover {
+	color: #ffffff;
+}
+
+.trigger:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
+
+.overlay {
+	position: fixed;
+	z-index: 20;
+	right: 1rem;
+	bottom: 1rem;
+	pointer-events: none;
+}
+
+.dialog {
+	width: min(22rem, calc(100vw - 2rem));
+	padding: 1rem;
+	color: #f4f7fa;
+	background: #1b1b1b;
+	box-shadow: 0 1rem 3rem rgb(0 0 0 / 35%);
+	pointer-events: auto;
+}
+
+.header,
+.actions,
+.analysis div {
+	display: flex;
+	align-items: center;
+}
+
+.header {
+	justify-content: space-between;
+	margin-bottom: 0.75rem;
+}
+
+.header h2 {
+	margin: 0;
+	font-size: 1rem;
+}
+
+.closeButton {
+	width: 2.25rem;
+	height: 2.25rem;
+}
+
+.previewFrame {
+	position: relative;
+	overflow: hidden;
+	aspect-ratio: 4 / 3;
+	background: #090909;
+}
+
+.video,
+.preview {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.scanLine {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	color: #d4af37;
+	transform: translate(-50%, -50%);
+	opacity: 0.85;
+}
+
+.hiddenCanvas {
+	display: none;
+}
+
+.message,
+.analysis {
+	margin: 0.75rem 0 0;
+	font-size: 0.8rem;
+}
+
+.message {
+	color: #f2b8b5;
+}
+
+.analysis {
+	display: grid;
+	gap: 0.45rem;
+}
+
+.analysis div {
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.analysis dt {
+	color: #a9a9a9;
+}
+
+.analysis dd {
+	display: flex;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+}
+
+.colorSwatch {
+	display: inline-block;
+	width: 0.9rem;
+	height: 0.9rem;
+	border: 1px solid #777;
+}
+
+.actions {
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-top: 1rem;
+}
+
+.captureButton,
+.secondaryButton {
+	padding: 0.6rem 0.85rem;
+	border: 1px solid #d4af37;
+	color: #171717;
+	background: #d4af37;
+	cursor: pointer;
+}
+
+.secondaryButton {
+	color: #d4af37;
+	background: transparent;
+}
+
+.captureButton:disabled {
+	cursor: not-allowed;
+	opacity: 0.45;
+}
