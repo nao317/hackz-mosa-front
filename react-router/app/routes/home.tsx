@@ -10,6 +10,10 @@ import FeedbackButtons from "../components/molecules/FeedbackButtons";
 import PlayButtons from "../components/molecules/PlayButtons";
 import { fetchStaleWhiskeyTrack } from "../features/audius/audius.client";
 import type { PlayableTrack } from "../features/audius/audius";
+import {
+  startLocationPolling,
+  type Location,
+} from "../features/Geolocation/Location";
 import styles from "./home.module.css";
 
 export function meta() {
@@ -27,6 +31,11 @@ type TrackLoadState =
   | { status: "ready"; track: PlayableTrack }
   | { status: "error"; message: string };
 
+type LocationState =
+  | { status: "loading" }
+  | { status: "ready"; location: Location }
+  | { status: "error"; message: string };
+
 export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [requestId, setRequestId] = useState(0);
@@ -36,6 +45,16 @@ export default function Home() {
   const [playbackError, setPlaybackError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [locationState, setLocationState] = useState<LocationState>({
+    status: "loading",
+  });
+
+  useEffect(() => {
+    return startLocationPolling(
+      (location) => setLocationState({ status: "ready", location }),
+      (error) => setLocationState({ status: "error", message: error.message }),
+    );
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -123,6 +142,17 @@ export default function Home() {
 
       {state.status === "ready" && (
         <section className={styles.player}>
+          <p aria-live="polite">
+            {locationState.status === "loading" && "現在地を取得しています。"}
+            {locationState.status === "error" && locationState.message}
+            {locationState.status === "ready" && (
+              <>
+                現在地: {locationState.location.latitude.toFixed(5)},{" "}
+                {locationState.location.longitude.toFixed(5)}
+              </>
+            )}
+          </p>
+
           <div className={styles.artworkFrame}>
             {state.track.artworkUrl ? (
               <Artwork
