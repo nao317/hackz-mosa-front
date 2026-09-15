@@ -1,0 +1,142 @@
+.sidebar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex: 0 0 240px;
+  flex-direction: column;
+  width: 240px;
+  height: 100vh;
+  height: 100dvh;
+  padding: 24px 16px 20px;
+  color: #ffffff;
+  background: #35373a;
+  border-right: 1px solid #4b4d50;
+}
+
+.navigation {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 0;
+}
+
+.navLink {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 11px;
+  color: #eeeeee;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 6px;
+}
+
+.navLink:hover {
+  color: #ffffff;
+  background: #484b4f;
+}
+
+.navLink:focus-visible,
+.menuButton:focus-visible,
+.closeButton:focus-visible {
+  outline: 2px solid #d4af37;
+  outline-offset: 2px;
+}
+
+.activeLink {
+  color: #171717;
+  background: #d4af37;
+}
+
+.menuButton,
+.closeButton,
+.backdrop {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(82vw, 288px);
+    padding-top: 18px;
+    box-shadow: 14px 0 36px rgb(0 0 0 / 0.3);
+    visibility: hidden;
+    transform: translateX(-104%);
+    transition:
+      transform 180ms ease,
+      visibility 180ms ease;
+  }
+
+  .sidebarOpen {
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .menuButton,
+  .closeButton {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .menuButton {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 20;
+    color: #ffffff;
+    background: #171717;
+    border: 1px solid #444444;
+  }
+
+  .closeButton {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    color: #ffffff;
+    background: #44464a;
+    border: 0;
+  }
+
+  .navigation {
+    margin-top: 52px;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    padding: 0;
+    cursor: default;
+    background: rgb(0 0 0 / 0.6);
+    border: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 180ms ease,
+      visibility 180ms ease;
+  }
+
+  .backdropVisible {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar,
+  .backdrop {
+    transition: none;
+  }
+}

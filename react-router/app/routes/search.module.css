@@ -1,0 +1,21 @@
+.page {
+	display: grid;
+	width: min(100%, 480px);
+	min-height: 100dvh;
+	margin: 0 auto;
+	padding: 24px;
+	align-content: start;
+	background: #050505;
+}
+
+.visuallyHidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
