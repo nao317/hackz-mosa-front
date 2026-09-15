@@ -1,0 +1,302 @@
+.appShell {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #101010;
+}
+
+.page {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  color: #ffffff;
+  background: #101010;
+}
+
+.content {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 20px;
+  width: min(100%, 900px);
+  height: 100%;
+  padding: 32px 32px 24px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #343434;
+}
+
+.backLink,
+.headingIcon {
+  display: grid;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  place-items: center;
+}
+
+.backLink {
+  color: #ffffff;
+  text-decoration: none;
+  border: 1px solid #444444;
+}
+
+.backLink:hover {
+  background: #242424;
+}
+
+.backLink:focus-visible,
+.trackLink:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.headingIcon {
+  color: #171717;
+  background: #d4af37;
+}
+
+.headingIcon[data-feedback="bad"] {
+  color: #ffffff;
+  background: #a9534d;
+}
+
+.headingText {
+  min-width: 0;
+}
+
+.headingText h1,
+.headingText p {
+  margin: 0;
+}
+
+.headingText h1 {
+  overflow: hidden;
+  font-size: 22px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headingText p {
+  margin-top: 3px;
+  color: #a9a9a9;
+  font-size: 12px;
+}
+
+.trackGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 88px));
+  gap: 12px;
+  align-content: start;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.trackLink {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 30px;
+  gap: 12px;
+  align-items: center;
+  height: 88px;
+  min-width: 0;
+  padding: 11px;
+  color: #ffffff;
+  text-decoration: none;
+  background: #1b1b1b;
+  border: 1px solid #373737;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.trackLink:hover {
+  background: #222222;
+  border-color: #5a5a5a;
+}
+
+.artworkFrame {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  color: #858585;
+  background: #292929;
+  place-items: center;
+}
+
+.artwork {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trackText {
+  display: block;
+  min-width: 0;
+}
+
+.trackTitle,
+.artist,
+.duration {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trackTitle {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.artist {
+  margin-top: 4px;
+  color: #a9a9a9;
+  font-size: 12px;
+}
+
+.duration {
+  margin-top: 4px;
+  color: #797979;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playIcon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  color: #171717;
+  background: #d4af37;
+  border-radius: 50%;
+  place-items: center;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #777777;
+}
+
+.emptyState p {
+  margin: 12px 0 0;
+  font-size: 14px;
+}
+
+@media (max-width: 767px) {
+  .content {
+    gap: 14px;
+    padding: 68px 12px 14px;
+  }
+
+  .header {
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .backLink,
+  .headingIcon {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  .headingText h1 {
+    font-size: 18px;
+  }
+
+  .trackGrid {
+    grid-template-rows: repeat(3, minmax(0, 76px));
+    gap: 8px;
+  }
+
+  .trackLink {
+    display: flex;
+    height: 76px;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .artworkFrame {
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
+  }
+
+  .trackTitle {
+    font-size: 12px;
+  }
+
+  .artist {
+    font-size: 11px;
+  }
+
+  .duration,
+  .playIcon {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .artworkFrame {
+    flex-basis: 42px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .trackLink {
+    height: 68px;
+    padding: 6px;
+  }
+
+  .trackGrid {
+    grid-template-rows: repeat(3, minmax(0, 68px));
+  }
+}
+
+@media (max-height: 560px) {
+  .content {
+    gap: 8px;
+    padding-top: 62px;
+    padding-bottom: 8px;
+  }
+
+  .header {
+    padding-bottom: 6px;
+  }
+
+  .headingIcon,
+  .headingText p {
+    display: none;
+  }
+
+  .trackGrid {
+    grid-template-rows: repeat(3, minmax(0, 60px));
+  }
+
+  .trackLink {
+    height: 60px;
+  }
+
+  .artworkFrame {
+    flex-basis: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
