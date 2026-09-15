@@ -102,6 +102,7 @@ export default function MapPage() {
 				value={query}
 				onChange={setQuery}
 				onSubmit={handleSearch}
+				onVoiceResult={setQuery}
 				placeholder="範囲内で流す曲を検索"
 			/>
 			<SearchSongs
