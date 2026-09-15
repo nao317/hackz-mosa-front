@@ -15,6 +15,7 @@ import { useLocation } from "react-router";
 import Artwork from "../components/atoms/Artwork";
 import AutoPlayToggle from "../components/atoms/AutoPlayToggle";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
+import SoundRecognation from "../components/atoms/SoundRecognation";
 import Slider from "../components/atoms/Slider";
 import PlayButtons from "../components/molecules/PlayButtons";
 import Sidebar from "../components/molecules/Sidebar";
@@ -314,7 +315,7 @@ export default function Home() {
     }
   }
 
-  function handlePlayPause() {
+  const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) {
       return;
@@ -332,7 +333,7 @@ export default function Home() {
         error instanceof Error ? error.message : "楽曲を再生できませんでした。",
       );
     });
-  }
+  }, []);
 
   function handleSeek(nextTime: number) {
     if (!audioRef.current) {
@@ -368,6 +369,7 @@ export default function Home() {
       />
       <main className={styles.page}>
         <h1 className={styles.visuallyHidden}>Home</h1>
+        <SoundRecognation onSnap={handlePlayPause} />
         <div className={styles.autoModeControl}>
           <AutoPlayToggle
             checked={isAutoPlayEnabled}
