@@ -27,6 +27,10 @@ import {
 import { searchAudiusTracks } from "../features/audius/audius.client";
 import { getRecommendationQueries } from "../features/audius/recommendation";
 import {
+  getTrackFeedback,
+  updateTrackFeedback,
+} from "../features/feedback/feedback-storage";
+import {
   fetchMunicipalityName,
   startLocationPolling,
   type Location,
@@ -97,6 +101,7 @@ export default function Home() {
   const location = useLocation();
   const selectedTrack = getSelectedTrackFromNavigation(location.state);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const activeTrackRef = useRef<PlayableTrack | undefined>(undefined);
   const shouldStartPlaybackRef = useRef(Boolean(selectedTrack));
   const [weatherData, setWeatherData] = useState<WeatherState | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Location | null>(
@@ -140,6 +145,15 @@ export default function Home() {
     [clockTime, weatherData, weatherSnapshot],
   );
   const recommendationKey = recommendationQueries.join("|");
+
+  useEffect(() => {
+    if (state.status === "ready") {
+      activeTrackRef.current = state.track;
+      setFeedback(getTrackFeedback(state.track.id));
+    } else {
+      activeTrackRef.current = undefined;
+    }
+  }, [state.status, state.status === "ready" ? state.track.id : undefined]);
 
   useEffect(() => {
     return startLocationPolling(
@@ -272,8 +286,13 @@ export default function Home() {
     setFeedback(null);
   }
 
-  const handleHandGesture = useCallback((gesture: FeedbackValue) => {
-    setFeedback(gesture);
+  const handleFeedbackChange = useCallback((value: FeedbackValue | null) => {
+    const track = activeTrackRef.current;
+    if (!track) {
+      return;
+    }
+    updateTrackFeedback(track, value);
+    setFeedback(value);
   }, []);
 
   function selectRecommendation(nextIndex: number) {
@@ -533,14 +552,14 @@ export default function Home() {
               isPlaying={isPlaying}
               onToggle={handlePlayPause}
               feedback={feedback}
-              onFeedbackChange={setFeedback}
+              onFeedbackChange={handleFeedbackChange}
               onPrevious={
                 canNavigateRecommendations ? handlePrevious : undefined
               }
               onNext={canNavigateRecommendations ? handleNext : undefined}
             />
 
-            <ImageRecognation onGesture={handleHandGesture} />
+            <ImageRecognation onGesture={handleFeedbackChange} />
 
             {playbackError && (
               <p className={styles.playbackError} role="alert">

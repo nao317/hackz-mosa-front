@@ -1,8 +1,9 @@
 import { ThumbsDown, ThumbsUp } from "lucide-react";
 
+import type { FeedbackValue } from "../../features/feedback/feedback";
 import styles from "./FeedbackButton.module.css";
 
-export type FeedbackValue = "good" | "bad";
+export type { FeedbackValue } from "../../features/feedback/feedback";
 
 type FeedbackButtonProps = {
   kind: FeedbackValue;
