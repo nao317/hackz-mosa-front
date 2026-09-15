@@ -35,18 +35,19 @@
 }
 
 .navLink:hover {
-  color: #ffffff;
-  background: #484b4f;
+  color: #eeeeee;
+  background: transparent;
 }
 
 .navLink:focus-visible,
 .menuButton:focus-visible,
 .closeButton:focus-visible {
-  outline: 2px solid #d4af37;
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 
-.activeLink {
+.activeLink,
+.activeLink:hover {
   color: #171717;
   background: #d4af37;
 }

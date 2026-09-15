@@ -39,6 +39,10 @@ function toPlayableTrack(value: unknown): PlayableTrack | null {
     return null;
   }
 
+  if (value.is_streamable === false || value.is_available === false) {
+    return null;
+  }
+
   if (!isRecord(value.access) || value.access.stream !== true) {
     return null;
   }
@@ -70,19 +74,44 @@ function toPlayableTrack(value: unknown): PlayableTrack | null {
   };
 }
 
-export function selectPlayableTrack(response: unknown): PlayableTrack {
+export function selectPlayableTracks(response: unknown): PlayableTrack[] {
   if (!isRecord(response) || !("data" in response)) {
     throw new Error("Audius API returned an invalid response.");
   }
 
   const tracks = Array.isArray(response.data) ? response.data : [response.data];
+  return tracks
+    .map(toPlayableTrack)
+    .filter((track): track is PlayableTrack => track !== null);
+}
 
-  for (const track of tracks) {
-    const playableTrack = toPlayableTrack(track);
-    if (playableTrack) {
-      return playableTrack;
-    }
+export function selectPlayableTrack(response: unknown): PlayableTrack {
+  const [track] = selectPlayableTracks(response);
+
+  if (!track) {
+    throw new Error("Audius API returned no public streamable tracks.");
   }
 
-  throw new Error("Audius API returned no public streamable tracks.");
+  return track;
+}
+
+export function getSelectedTrackFromNavigation(
+  value: unknown,
+): PlayableTrack | undefined {
+  if (!isRecord(value) || !isRecord(value.selectedTrack)) {
+    return undefined;
+  }
+
+  const track = value.selectedTrack;
+  if (
+    typeof track.id !== "string" ||
+    typeof track.title !== "string" ||
+    typeof track.artist !== "string" ||
+    typeof track.streamUrl !== "string" ||
+    track.source !== "audius"
+  ) {
+    return undefined;
+  }
+
+  return track as PlayableTrack;
 }
