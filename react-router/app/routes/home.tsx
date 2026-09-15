@@ -15,6 +15,7 @@ import { useLocation } from "react-router";
 import Artwork from "../components/atoms/Artwork";
 import AutoPlayToggle from "../components/atoms/AutoPlayToggle";
 import type { FeedbackValue } from "../components/atoms/FeedbackButton";
+import SoundRecognation from "../components/atoms/SoundRecognation";
 import Slider from "../components/atoms/Slider";
 import PlayButtons from "../components/molecules/PlayButtons";
 import Sidebar from "../components/molecules/Sidebar";
@@ -24,7 +25,11 @@ import {
 } from "../features/audius/audius";
 import { searchAudiusTracks } from "../features/audius/audius.client";
 import { getRecommendationQueries } from "../features/audius/recommendation";
-import { startLocationPolling } from "../features/Geolocation/Location";
+import {
+  fetchMunicipalityName,
+  startLocationPolling,
+  type Location,
+} from "../features/Geolocation/Location";
 import {
   fetchWeather,
   type WeatherSnapshot,
@@ -93,6 +98,10 @@ export default function Home() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const shouldStartPlaybackRef = useRef(Boolean(selectedTrack));
   const [weatherData, setWeatherData] = useState<WeatherState | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<Location | null>(
+    null,
+  );
+  const [municipalityName, setMunicipalityName] = useState<string | null>(null);
   const [state, setState] = useState<TrackLoadState>(() =>
     selectedTrack
       ? { status: "ready", track: selectedTrack }
@@ -134,6 +143,7 @@ export default function Home() {
   useEffect(() => {
     return startLocationPolling(
       (locationSnapshot) => {
+        setCurrentLocation(locationSnapshot);
         void fetchWeather(locationSnapshot)
           .then(setWeatherData)
           .catch((error: unknown) => {
@@ -153,6 +163,25 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!currentLocation) {
+      return;
+    }
+
+    const controller = new AbortController();
+    setMunicipalityName(null);
+
+    void fetchMunicipalityName(currentLocation, controller.signal)
+      .then(setMunicipalityName)
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          setMunicipalityName(null);
+        }
+      });
+
+    return () => controller.abort();
+  }, [currentLocation?.latitude, currentLocation?.longitude]);
+
+  useEffect(() => {
     function updateClockTime() {
       setClockTime(clockFormatter.format(new Date()));
     }
@@ -163,25 +192,31 @@ export default function Home() {
   }, [clockFormatter]);
 
   useEffect(() => {
-    if (!isAutoPlayEnabled || !recommendationKey) {
+    if ((!isAutoPlayEnabled && !selectedTrack) || !recommendationKey) {
       return;
     }
 
     const controller = new AbortController();
-    setState({ status: "loading" });
+    if (!selectedTrack) {
+      setState({ status: "loading" });
+    }
     setIsPlaying(false);
     setPlaybackError(null);
     setCurrentTime(0);
     setDuration(0);
 
     void (async () => {
+      const tracksById = new Map<string, PlayableTrack>();
       for (const query of recommendationQueries) {
         const tracks = await searchAudiusTracks(query, controller.signal);
-        if (tracks.length > 0) {
-          return tracks;
+        for (const track of tracks) {
+          tracksById.set(track.id, track);
+        }
+        if (tracksById.size >= 20) {
+          break;
         }
       }
-      return [];
+      return [...tracksById.values()].slice(0, 20);
     })()
       .then((tracks) => {
         if (controller.signal.aborted) {
@@ -191,26 +226,42 @@ export default function Home() {
           throw new Error("再生できる候補が見つかりませんでした。");
         }
 
+        const nextTracks = selectedTrack
+          ? [
+              selectedTrack,
+              ...tracks.filter((track) => track.id !== selectedTrack.id),
+            ]
+          : tracks;
         shouldStartPlaybackRef.current = true;
-        setRecommendationTracks(tracks);
+        setRecommendationTracks(nextTracks);
         setRecommendationIndex(0);
-        setState({ status: "ready", track: tracks[0] });
+        setState({
+          status: "ready",
+          track: selectedTrack ?? nextTracks[0],
+        });
         setFeedback(null);
       })
       .catch((error: unknown) => {
         if (!controller.signal.aborted) {
-          setState({
-            status: "error",
-            message:
-              error instanceof Error
-                ? error.message
-                : "楽曲候補を取得できませんでした。",
-          });
+          if (!selectedTrack) {
+            setState({
+              status: "error",
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "楽曲候補を取得できませんでした。",
+            });
+          }
         }
       });
 
     return () => controller.abort();
-  }, [isAutoPlayEnabled, recommendationKey, recommendationRequestId]);
+  }, [
+    isAutoPlayEnabled,
+    recommendationKey,
+    recommendationRequestId,
+    selectedTrack,
+  ]);
 
   function resetPlaybackState() {
     setIsPlaying(false);
@@ -264,7 +315,7 @@ export default function Home() {
     }
   }
 
-  function handlePlayPause() {
+  const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) {
       return;
@@ -282,7 +333,7 @@ export default function Home() {
         error instanceof Error ? error.message : "楽曲を再生できませんでした。",
       );
     });
-  }
+  }, []);
 
   function handleSeek(nextTime: number) {
     if (!audioRef.current) {
@@ -307,8 +358,7 @@ export default function Home() {
     state.status === "ready"
       ? duration || state.track.durationSeconds || 1
       : 1;
-  const canNavigateRecommendations =
-    isAutoPlayEnabled && recommendationTracks.length > 1;
+  const canNavigateRecommendations = recommendationTracks.length > 1;
 
   return (
     <div className={styles.appShell}>
@@ -319,6 +369,7 @@ export default function Home() {
       />
       <main className={styles.page}>
         <h1 className={styles.visuallyHidden}>Home</h1>
+        <SoundRecognation onSnap={handlePlayPause} />
         <div className={styles.autoModeControl}>
           <AutoPlayToggle
             checked={isAutoPlayEnabled}
@@ -350,6 +401,9 @@ export default function Home() {
         {state.status === "ready" && (
           <section className={styles.player}>
             <div className={styles.clockArea}>
+              {municipalityName && (
+                <p className={styles.municipalityName}>{municipalityName}</p>
+              )}
               {clockTime && (
                 <time
                   className={styles.clockTime}
@@ -381,7 +435,7 @@ export default function Home() {
                   >
                     <WeatherIcon
                       aria-hidden="true"
-                      size={32}
+                      size={40}
                       strokeWidth={1.8}
                     />
                   </div>

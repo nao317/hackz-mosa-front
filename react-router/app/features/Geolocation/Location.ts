@@ -11,6 +11,108 @@ export type Location = {
   capturedAt: number;
 };
 
+export async function fetchMunicipalityName(
+  location: Pick<Location, "latitude" | "longitude">,
+  signal?: AbortSignal,
+): Promise<string> {
+  const params = new URLSearchParams({
+    latitude: location.latitude.toFixed(6),
+    longitude: location.longitude.toFixed(6),
+    localityLanguage: "ja",
+  });
+
+  const response = await fetch(
+    `https://api.bigdatacloud.net/data/reverse-geocode-client?${params}`,
+    { signal: signal ?? AbortSignal.timeout(5_000) },
+  );
+
+  if (!response.ok) {
+    throw new Error("現在地の地域名を取得できませんでした。");
+  }
+
+  const payload: unknown = await response.json();
+  if (!isReverseGeocodeResponse(payload)) {
+    throw new Error("現在地の地域名の形式が不正です。");
+  }
+
+  const municipality = formatMunicipalityName(payload);
+  if (!municipality) {
+    throw new Error("現在地の市町村名を取得できませんでした。");
+  }
+
+  return municipality;
+}
+
+function formatMunicipalityName(payload: {
+  city?: string;
+  locality?: string;
+  principalSubdivision?: string;
+  localityInfo?: {
+    administrative?: Array<{
+      name: string;
+      adminLevel: number;
+    }>;
+  };
+}): string {
+  const city = payload.city?.trim();
+  const locality = payload.locality?.trim();
+  if (city && locality && city !== locality) {
+    return `${city}${locality}`;
+  }
+
+  const finestAdministrativeArea = payload.localityInfo?.administrative
+    ?.filter((area) => area.name && area.adminLevel >= 2)
+    .sort((left, right) => right.adminLevel - left.adminLevel)[0]?.name;
+  return (
+    city ||
+    locality ||
+    finestAdministrativeArea ||
+    payload.principalSubdivision ||
+    ""
+  );
+}
+
+function isReverseGeocodeResponse(
+  value: unknown,
+): value is {
+  city?: string;
+  locality?: string;
+  principalSubdivision?: string;
+  localityInfo?: {
+    administrative?: Array<{
+      name: string;
+      adminLevel: number;
+    }>;
+  };
+} {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const response = value as Record<string, unknown>;
+  return (
+    (response.city === undefined || typeof response.city === "string") &&
+    (response.locality === undefined || typeof response.locality === "string") &&
+    (response.principalSubdivision === undefined ||
+      typeof response.principalSubdivision === "string") &&
+    (response.localityInfo === undefined ||
+      (typeof response.localityInfo === "object" &&
+        response.localityInfo !== null &&
+        (!(
+          "administrative" in response.localityInfo &&
+          response.localityInfo.administrative !== undefined
+        ) ||
+          (Array.isArray(response.localityInfo.administrative) &&
+            response.localityInfo.administrative.every(
+              (area) =>
+                typeof area === "object" &&
+                area !== null &&
+                typeof area.name === "string" &&
+                typeof area.adminLevel === "number",
+            )))))
+  );
+}
+
 export type LocationErrorCode =
   | "LOCATION_UNSUPPORTED"
   | "LOCATION_PERMISSION_DENIED"

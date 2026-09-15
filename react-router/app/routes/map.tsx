@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { LatLngTuple } from "leaflet";
+import { useNavigate } from "react-router";
 
 import SearchSpace from "../components/atoms/SearchSpace";
 import MapPoint from "../components/molecules/MapPoint";
@@ -42,17 +43,15 @@ function isInsideArea(location: Location, area: LatLngTuple[]) {
 }
 
 export default function MapPage() {
-	const audioRef = useRef<HTMLAudioElement>(null);
+	const navigate = useNavigate();
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 	const [query, setQuery] = useState("");
 	const [tracks, setTracks] = useState<PlayableTrack[]>([]);
-	const [selectedTrack, setSelectedTrack] = useState<PlayableTrack>();
 	const [area, setArea] = useState<LatLngTuple[]>([]);
 	const [location, setLocation] = useState<Location>();
 	const [isInside, setIsInside] = useState(false);
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string>();
-	const [playbackError, setPlaybackError] = useState<string>();
 	const openSidebar = useCallback(() => setIsSidebarOpen(true), []);
 	const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
@@ -91,26 +90,6 @@ export default function MapPage() {
 		}
 	}, [area, location]);
 
-	useEffect(() => {
-		const audio = audioRef.current;
-		if (!audio || !selectedTrack) {
-			return;
-		}
-
-		if (!isInside) {
-			audio.pause();
-			return;
-		}
-
-		void audio.play().catch((error: unknown) => {
-			setPlaybackError(
-				error instanceof Error
-					? error.message
-					: "自動再生できませんでした。再生ボタンを押してください。",
-			);
-		});
-	}, [isInside, selectedTrack]);
-
 	return (
 		<div className={styles.layout}>
 			<Sidebar
@@ -129,10 +108,8 @@ export default function MapPage() {
 				tracks={tracks}
 				isLoading={isLoading}
 				errorMessage={errorMessage}
-				selectedTrackId={selectedTrack?.id}
 				onSelect={(track) => {
-					setSelectedTrack(track);
-					setPlaybackError(undefined);
+					navigate("/", { state: { selectedTrack: track } });
 				}}
 			/>
 			<MapPoint
@@ -140,23 +117,9 @@ export default function MapPage() {
 				onLocationChange={handleLocationChange}
 			/>
 			<p aria-live="polite">
-				{selectedTrack
-					? `${selectedTrack.title}を範囲内で再生します。`
-					: "曲を選択すると、現在地が範囲内に入ったときに再生します。"}
-				{isInside && selectedTrack ? " 現在地は範囲内です。" : ""}
+				現在地の範囲を地図で指定できます。
+				{isInside ? " 現在地は範囲内です。" : ""}
 			</p>
-			{selectedTrack && (
-				<div className={styles.player}>
-					<strong>{selectedTrack.title}</strong>
-					<audio
-						ref={audioRef}
-						controls
-						src={selectedTrack.streamUrl}
-						onError={() => setPlaybackError("曲を再生できませんでした。")}
-					/>
-					{playbackError && <p role="alert">{playbackError}</p>}
-				</div>
-			)}
 			</main>
 		</div>
 	);

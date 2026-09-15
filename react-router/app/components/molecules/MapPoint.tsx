@@ -150,7 +150,14 @@ export default function MapPoint({
 	function addPoint(point: LatLngTuple) {
 		setPoints((currentPoints) => {
 			const nextPoints = [...currentPoints, point];
+			const nextArea =
+				nextPoints.length >= 3
+					? [...nextPoints, nextPoints[0]]
+					: nextPoints;
+
+			setArea(nextArea);
 			onPointsChange?.(nextPoints);
+			onAreaChange?.(nextPoints.length >= 3 ? nextArea : []);
 			return nextPoints;
 		});
 	}
@@ -187,12 +194,14 @@ export default function MapPoint({
 		return <div className={styles.loading}>地図を読み込んでいます。</div>;
 	}
 
-	const { CircleMarker, MapContainer, Polyline, TileLayer } = leafletComponents;
+	const { CircleMarker, MapContainer, Polygon, Polyline, TileLayer } =
+		leafletComponents;
 
 	return (
 		<section className={styles.wrapper} aria-label="地図上の範囲指定">
 			<p className={styles.instructions}>
-				「範囲を編集」を押すと、スマホは指、PCは左ドラッグで範囲を描画できます。
+				編集モードOFFで地図をクリックすると点を追加し、3点以上で図形になります。
+				編集モードONでは指または左ドラッグで手書きできます。
 				{locationError && ` ${locationError}`}
 			</p>
 			<div className={styles.toolbar}>
@@ -241,7 +250,8 @@ export default function MapPoint({
 						pathOptions={{ color: "#d4af37", fillColor: "#d4af37" }}
 					/>
 				)}
-				{area.length > 1 && <Polyline positions={area as LatLngExpression[]} />}
+				{area.length === 3 && <Polyline positions={area as LatLngExpression[]} />}
+				{area.length >= 4 && <Polygon positions={area as LatLngExpression[]} />}
 				</MapContainer>
 			</div>
 		</section>
