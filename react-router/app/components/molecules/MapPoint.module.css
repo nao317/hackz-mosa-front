@@ -1,0 +1,56 @@
+.wrapper {
+	display: grid;
+	grid-template-rows: auto auto minmax(0, 1fr);
+	gap: 12px;
+	width: 100%;
+}
+
+.loading {
+	display: grid;
+	min-height: 320px;
+	place-items: center;
+	color: #aebdca;
+	background: #25272a;
+}
+
+.instructions {
+	margin: 0;
+	color: #aebdca;
+	font-size: 0.9rem;
+}
+
+.toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.button,
+.activeButton,
+.clearButton {
+	min-height: 40px;
+	padding: 0 12px;
+	border: 1px solid #4b4d50;
+	border-radius: 6px;
+	color: #ffffff;
+	background: #25272a;
+	cursor: pointer;
+}
+
+.activeButton {
+	color: #171717;
+	background: #d4af37;
+	border-color: #d4af37;
+}
+
+.clearButton {
+	margin-left: auto;
+}
+
+.map {
+	width: 100%;
+	height: min(68dvh, 560px);
+	min-height: 320px;
+	border-radius: 8px;
+	overflow: hidden;
+}

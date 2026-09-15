@@ -1,0 +1,57 @@
+.layout {
+	display: flex;
+	min-height: 100dvh;
+	background: #050505;
+}
+
+.page {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: min(100%, 960px);
+	min-height: 100dvh;
+	margin: 0 auto;
+	padding: 12px;
+	overflow: visible;
+	color: #ffffff;
+	background: #050505;
+}
+
+.page > form {
+	flex: 0 0 auto;
+	margin-bottom: 8px;
+}
+
+.page > ul {
+	flex: 0 0 auto;
+	max-height: none;
+	overflow: visible;
+	margin: 0 0 8px;
+}
+
+.page > section {
+	flex: 0 0 auto;
+	margin-bottom: 8px;
+}
+
+.page > p {
+	flex: 0 0 auto;
+	margin: 0 0 8px;
+	font-size: 0.8rem;
+}
+
+.player {
+	flex: 0 0 auto;
+	display: grid;
+	gap: 8px;
+	padding: 8px;
+	margin: 0;
+	border: 1px solid #4b4d50;
+	border-radius: 8px;
+	background: #171717;
+}
+
+.player audio {
+	width: 100%;
+}
