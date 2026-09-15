@@ -1,0 +1,257 @@
+.appShell {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #101010;
+}
+
+.page {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+  color: #ffffff;
+  background: #101010;
+}
+
+.content {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 24px;
+  width: min(100%, 900px);
+  height: 100%;
+  padding: 38px 32px 28px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.header {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #343434;
+}
+
+.headingIcon {
+  display: grid;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  color: #171717;
+  background: #d4af37;
+  border-radius: 6px;
+  place-items: center;
+}
+
+.header h1,
+.header p {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: 24px;
+  line-height: 1.25;
+}
+
+.header p {
+  margin-top: 4px;
+  color: #a9a9a9;
+  font-size: 13px;
+}
+
+.playlistGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-content: start;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.playlistLink {
+  display: grid;
+  grid-template-columns: minmax(112px, 42%) minmax(0, 1fr);
+  min-height: 176px;
+  overflow: hidden;
+  color: #ffffff;
+  text-decoration: none;
+  background: #1b1b1b;
+  border: 1px solid #393939;
+  border-radius: 6px;
+}
+
+.playlistLink:hover {
+  border-color: #777777;
+}
+
+.playlistLink:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.cover {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  min-width: 0;
+  overflow: hidden;
+  background: #292929;
+}
+
+.coverArtwork,
+.coverPlaceholder {
+  width: 100%;
+  height: 100%;
+}
+
+.coverArtwork {
+  display: block;
+  object-fit: cover;
+}
+
+.cover[data-count="1"] {
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+}
+
+.cover[data-count="2"] {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: 1fr;
+}
+
+.cover[data-count="3"] > :last-child {
+  grid-column: 1 / -1;
+}
+
+.coverPlaceholder {
+  display: grid;
+  color: #777777;
+  background: #242424;
+  place-items: center;
+}
+
+.emptyCover {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  color: #d4af37;
+  background: #292929;
+  place-items: center;
+}
+
+.playlistLink[data-feedback="bad"] .emptyCover {
+  color: #d8847e;
+}
+
+.playlistBody {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 19px 17px 16px;
+}
+
+.playlistTitle,
+.playlistDescription {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlistTitle {
+  font-size: 17px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.playlistDescription {
+  display: -webkit-box;
+  margin-top: 9px;
+  overflow: hidden;
+  color: #a9a9a9;
+  font-size: 12px;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.playlistMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  color: #d4af37;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 767px) {
+  .content {
+    gap: 18px;
+    padding: 72px 16px 18px;
+  }
+
+  .header {
+    padding-bottom: 14px;
+  }
+
+  .header h1 {
+    font-size: 21px;
+  }
+
+  .playlistGrid {
+    gap: 10px;
+  }
+
+  .playlistLink {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .cover {
+    flex: 0 0 auto;
+    width: 100%;
+    aspect-ratio: 1.7 / 1;
+  }
+
+  .playlistBody {
+    min-height: 92px;
+    padding: 12px;
+  }
+
+  .playlistTitle {
+    font-size: 14px;
+  }
+
+  .playlistDescription {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .content {
+    gap: 10px;
+    padding-top: 64px;
+    padding-bottom: 10px;
+  }
+
+  .header {
+    padding-bottom: 8px;
+  }
+
+  .headingIcon,
+  .header p {
+    display: none;
+  }
+
+  .cover {
+    aspect-ratio: 2.5 / 1;
+  }
+
+  .playlistBody {
+    min-height: 62px;
+  }
+}

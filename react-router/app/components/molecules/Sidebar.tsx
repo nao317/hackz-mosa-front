@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Home, Map, Menu, Search, User, X } from "lucide-react";
+import { Home, ListMusic, Map, Menu, Search, User, X } from "lucide-react";
 import { NavLink } from "react-router";
 
 import styles from "./Sidebar.module.css";
@@ -106,6 +106,16 @@ export default function Sidebar({ isOpen, onClose, onOpen }: SidebarProps) {
           >
             <Map aria-hidden="true" size={19} />
             <span>マップ</span>
+          </NavLink>
+          <NavLink
+            className={({ isActive }) =>
+              `${styles.navLink} ${isActive ? styles.activeLink : ""}`
+            }
+            to="/playlists"
+            onClick={closeSidebar}
+          >
+            <ListMusic aria-hidden="true" size={19} />
+            <span>プレイリスト</span>
           </NavLink>
           <NavLink
             className={({ isActive }) =>
