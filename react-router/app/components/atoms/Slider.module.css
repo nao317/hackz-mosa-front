@@ -1,8 +1,4 @@
 .slider {
-  --slider-active: #111111;
-  --slider-inactive: #d4d4d4;
-  --slider-thumb: #737373;
-
   display: grid;
   gap: 8px;
   width: 100%;
@@ -41,10 +37,10 @@
   height: 3px;
   background: linear-gradient(
     to right,
-    var(--slider-active) 0%,
-    var(--slider-active) var(--slider-progress),
-    var(--slider-inactive) var(--slider-progress),
-    var(--slider-inactive) 100%
+    var(--slider-active, #111111) 0%,
+    var(--slider-active, #111111) var(--slider-progress),
+    var(--slider-inactive, #d4d4d4) var(--slider-progress),
+    var(--slider-inactive, #d4d4d4) 100%
   );
 }
 
@@ -53,31 +49,31 @@
   height: 13px;
   margin-top: -5px;
   appearance: none;
-  background: var(--slider-thumb);
+  background: var(--slider-thumb, #737373);
   border: 0;
   border-radius: 50%;
 }
 
 .input::-moz-range-track {
   height: 3px;
-  background: var(--slider-inactive);
+  background: var(--slider-inactive, #d4d4d4);
 }
 
 .input::-moz-range-progress {
   height: 3px;
-  background: var(--slider-active);
+  background: var(--slider-active, #111111);
 }
 
 .input::-moz-range-thumb {
   width: 13px;
   height: 13px;
-  background: var(--slider-thumb);
+  background: var(--slider-thumb, #737373);
   border: 0;
   border-radius: 50%;
 }
 
 .input:focus-visible {
-  outline: 2px solid var(--slider-active);
+  outline: 2px solid var(--slider-active, #111111);
   outline-offset: 3px;
 }
 
