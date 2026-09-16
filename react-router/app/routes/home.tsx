@@ -9,6 +9,7 @@ import {
   CloudSun,
   Sun,
   type LucideIcon,
+  Plus,
 } from "lucide-react";
 import { useLocation } from "react-router";
 
@@ -26,6 +27,12 @@ import {
 } from "../features/audius/audius";
 import { searchAudiusTracks } from "../features/audius/audius.client";
 import { getRecommendationQueries } from "../features/audius/recommendation";
+import { usePlayback } from "../features/playback/PlaybackProvider";
+import {
+  listPlaylists,
+  addPlaylistTrack,
+  type Playlist,
+} from "../features/playlists/playlist-api";
 import {
   getTrackFeedback,
   updateTrackFeedback,
@@ -100,9 +107,8 @@ function getWeatherIcon(weatherCode: number, isDay: boolean): LucideIcon {
 export default function Home() {
   const location = useLocation();
   const selectedTrack = getSelectedTrackFromNavigation(location.state);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { track: playbackTrack, queue: playbackQueue, index: playbackIndex, isPlaying, currentTime, duration, autoPlay: isAutoPlayEnabled, setQueue, selectTrack, toggle, seek, setAutoPlay } = usePlayback();
   const activeTrackRef = useRef<PlayableTrack | undefined>(undefined);
-  const shouldStartPlaybackRef = useRef(Boolean(selectedTrack));
   const [weatherData, setWeatherData] = useState<WeatherState | null>(null);
   const [currentLocation, setCurrentLocation] = useState<Location | null>(
     null,
@@ -113,21 +119,15 @@ export default function Home() {
       ? { status: "ready", track: selectedTrack }
       : { status: "loading" },
   );
-  const [recommendationTracks, setRecommendationTracks] = useState<
-    PlayableTrack[]
-  >([]);
-  const [recommendationIndex, setRecommendationIndex] = useState(-1);
+  const [recommendationTracks, setRecommendationTracks] = useState<PlayableTrack[]>([]);
   const [recommendationRequestId, setRecommendationRequestId] = useState(0);
-  const [isAutoPlayEnabled, setIsAutoPlayEnabled] = useState(
-    () => !selectedTrack,
-  );
   const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [clockTime, setClockTime] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [isPlaylistMenuOpen, setIsPlaylistMenuOpen] = useState(false);
+  const [playlistMessage, setPlaylistMessage] = useState<string | null>(null);
   const openSidebar = useCallback(() => setIsSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
 
@@ -142,18 +142,19 @@ export default function Home() {
       weatherData === null
         ? []
         : getRecommendationQueries(weatherSnapshot, new Date()),
-    [clockTime, weatherData, weatherSnapshot],
+    [weatherData, weatherSnapshot],
   );
   const recommendationKey = recommendationQueries.join("|");
 
   useEffect(() => {
-    if (state.status === "ready") {
-      activeTrackRef.current = state.track;
-      setFeedback(getTrackFeedback(state.track.id));
+    if (playbackTrack) {
+      activeTrackRef.current = playbackTrack;
+      setFeedback(getTrackFeedback(playbackTrack.id));
+      setState({ status: "ready", track: playbackTrack });
     } else {
       activeTrackRef.current = undefined;
     }
-  }, [state.status, state.status === "ready" ? state.track.id : undefined]);
+  }, [playbackTrack]);
 
   useEffect(() => {
     return startLocationPolling(
@@ -207,6 +208,40 @@ export default function Home() {
   }, [clockFormatter]);
 
   useEffect(() => {
+    if (!isPlaylistMenuOpen) {
+      return;
+    }
+    void listPlaylists()
+      .then(setPlaylists)
+      .catch((error: unknown) => {
+        setPlaylistMessage(
+          error instanceof Error
+            ? error.message
+            : "プレイリストを取得できませんでした。",
+        );
+      });
+  }, [isPlaylistMenuOpen]);
+
+  async function addCurrentTrackToPlaylist(playlist: Playlist) {
+    if (!playbackTrack) {
+      return;
+    }
+    try {
+      await addPlaylistTrack(playlist.id, playbackTrack);
+      setPlaylistMessage(`「${playlist.name}」に追加しました。`);
+      setIsPlaylistMenuOpen(false);
+    } catch (error: unknown) {
+      setPlaylistMessage(
+        error instanceof Error ? error.message : "曲を追加できませんでした。",
+      );
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedTrack && playbackTrack) {
+      return;
+    }
+
     if ((!isAutoPlayEnabled && !selectedTrack) || !recommendationKey) {
       return;
     }
@@ -215,10 +250,7 @@ export default function Home() {
     if (!selectedTrack) {
       setState({ status: "loading" });
     }
-    setIsPlaying(false);
     setPlaybackError(null);
-    setCurrentTime(0);
-    setDuration(0);
 
     void (async () => {
       const tracksById = new Map<string, PlayableTrack>();
@@ -247,9 +279,8 @@ export default function Home() {
               ...tracks.filter((track) => track.id !== selectedTrack.id),
             ]
           : tracks;
-        shouldStartPlaybackRef.current = true;
         setRecommendationTracks(nextTracks);
-        setRecommendationIndex(0);
+        setQueue(nextTracks, 0, true);
         setState({
           status: "ready",
           track: selectedTrack ?? nextTracks[0],
@@ -273,16 +304,14 @@ export default function Home() {
     return () => controller.abort();
   }, [
     isAutoPlayEnabled,
+    playbackTrack,
     recommendationKey,
     recommendationRequestId,
     selectedTrack,
   ]);
 
   function resetPlaybackState() {
-    setIsPlaying(false);
     setPlaybackError(null);
-    setCurrentTime(0);
-    setDuration(0);
     setFeedback(null);
   }
 
@@ -301,33 +330,30 @@ export default function Home() {
       return;
     }
 
-    shouldStartPlaybackRef.current = true;
     resetPlaybackState();
-    setRecommendationIndex(nextIndex);
+    selectTrack(recommendationTracks[nextIndex], true);
     setState({ status: "ready", track: nextTrack });
   }
 
   function handlePrevious() {
-    if (recommendationTracks.length === 0) {
+    if (playbackQueue.length === 0) {
       return;
     }
     const nextIndex =
-      (recommendationIndex - 1 + recommendationTracks.length) %
-      recommendationTracks.length;
+      (playbackIndex - 1 + playbackQueue.length) % playbackQueue.length;
     selectRecommendation(nextIndex);
   }
 
   function handleNext() {
-    if (recommendationTracks.length === 0) {
+    if (playbackQueue.length === 0) {
       return;
     }
-    const nextIndex = (recommendationIndex + 1) % recommendationTracks.length;
+    const nextIndex = (playbackIndex + 1) % playbackQueue.length;
     selectRecommendation(nextIndex);
   }
 
   function handleAutoPlayChange(enabled: boolean) {
-    shouldStartPlaybackRef.current = false;
-    setIsAutoPlayEnabled(enabled);
+    setAutoPlay(enabled);
     if (enabled) {
       setRecommendationRequestId((id) => id + 1);
     } else {
@@ -340,42 +366,12 @@ export default function Home() {
   }
 
   const handlePlayPause = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) {
-      return;
-    }
-
     setPlaybackError(null);
-    if (!audio.paused) {
-      audio.pause();
-      return;
-    }
-
-    void audio.play().catch((error: unknown) => {
-      setIsPlaying(false);
-      setPlaybackError(
-        error instanceof Error ? error.message : "楽曲を再生できませんでした。",
-      );
-    });
+    toggle();
   }, []);
 
   function handleSeek(nextTime: number) {
-    if (!audioRef.current) {
-      return;
-    }
-    audioRef.current.currentTime = nextTime;
-    setCurrentTime(nextTime);
-  }
-
-  function handleCanPlay(audio: HTMLAudioElement) {
-    if (!shouldStartPlaybackRef.current) {
-      return;
-    }
-
-    shouldStartPlaybackRef.current = false;
-    void audio.play().catch(() => {
-      setIsPlaying(false);
-    });
+    seek(nextTime);
   }
 
   const playbackDuration =
@@ -513,40 +509,38 @@ export default function Home() {
                 )}
               </h2>
               <p className={styles.artist}>{state.track.artist}</p>
+              <button
+                className={styles.addPlaylistButton}
+                type="button"
+                aria-label="プレイリストに追加"
+                title="プレイリストに追加"
+                onClick={() => {
+                  setPlaylistMessage(null);
+                  setIsPlaylistMenuOpen((open) => !open);
+                }}
+              >
+                <Plus aria-hidden="true" size={20} />
+              </button>
             </div>
-
-            <audio
-              ref={audioRef}
-              className={styles.audio}
-              key={state.track.id}
-              preload="metadata"
-              src={state.track.streamUrl}
-              onCanPlay={(event) => handleCanPlay(event.currentTarget)}
-              onLoadedMetadata={(event) => {
-                if (Number.isFinite(event.currentTarget.duration)) {
-                  setDuration(event.currentTarget.duration);
-                }
-              }}
-              onTimeUpdate={(event) =>
-                setCurrentTime(event.currentTarget.currentTime)
-              }
-              onPlay={() => setIsPlaying(true)}
-              onPause={() => setIsPlaying(false)}
-              onEnded={() => {
-                setIsPlaying(false);
-                if (isAutoPlayEnabled && recommendationTracks.length > 0) {
-                  handleNext();
-                } else {
-                  setCurrentTime(playbackDuration);
-                }
-              }}
-              onError={() => {
-                setIsPlaying(false);
-                setPlaybackError("楽曲を読み込めませんでした。");
-              }}
-            >
-              お使いのブラウザは音声再生に対応していません。
-            </audio>
+            {isPlaylistMenuOpen && (
+              <div className={styles.playlistMenu} role="dialog" aria-label="プレイリストに追加">
+                <strong>追加先を選択</strong>
+                {playlists.length === 0 ? (
+                  <p>プレイリストがありません。</p>
+                ) : (
+                  playlists.map((playlist) => (
+                    <button
+                      type="button"
+                      key={playlist.id}
+                      onClick={() => void addCurrentTrackToPlaylist(playlist)}
+                    >
+                      {playlist.name}
+                    </button>
+                  ))
+                )}
+                {playlistMessage && <p role="status">{playlistMessage}</p>}
+              </div>
+            )}
 
             <PlayButtons
               isPlaying={isPlaying}

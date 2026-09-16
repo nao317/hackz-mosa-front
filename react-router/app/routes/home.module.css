@@ -172,12 +172,13 @@
 }
 
 .trackInfo {
+  position: relative;
   min-height: clamp(72px, 13dvh, 95px);
-  padding: 9px 12px;
+  padding: 9px 44px 9px 0;
   margin-top: clamp(6px, 1.25dvh, 9px);
   overflow: hidden;
-  color: #111111;
-  background: #ffffff;
+  color: #ffffff;
+  background: transparent;
 }
 
 .trackTitle {
@@ -206,6 +207,49 @@
   line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.addPlaylistButton {
+  position: absolute;
+  top: 8px;
+  right: 0;
+  display: grid;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  place-items: center;
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #ffffff;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.playlistMenu {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  color: #ffffff;
+  background: #171717;
+  border: 1px solid #4b4d50;
+  border-radius: 6px;
+}
+
+.playlistMenu p {
+  margin: 0;
+  color: #c7c7c7;
+  font-size: 0.8rem;
+}
+
+.playlistMenu button {
+  padding: 8px 10px;
+  color: #ffffff;
+  text-align: left;
+  background: #25272a;
+  border: 1px solid #4b4d50;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .audio {
