@@ -6,12 +6,16 @@ import {
 	startLocationPolling,
 	type Location,
 } from "../../features/Geolocation/Location";
+import type { MapMapping } from "../../features/map-mappings/map-mapping-api";
 import styles from "./MapPoint.module.css";
 
 type MapPointProps = {
 	onPointsChange?: (points: LatLngTuple[]) => void;
 	onAreaChange?: (area: LatLngTuple[]) => void;
 	onLocationChange?: (location: Location) => void;
+	registeredMappings?: MapMapping[];
+	activeMappingId?: number;
+	resetSelectionKey?: number;
 };
 
 function MapInteraction({
@@ -62,6 +66,9 @@ export default function MapPoint({
 	onPointsChange,
 	onAreaChange,
 	onLocationChange,
+	registeredMappings = [],
+	activeMappingId,
+	resetSelectionKey = 0,
 }: MapPointProps) {
 	const [leafletComponents, setLeafletComponents] = useState<
 		typeof import("react-leaflet") | null
@@ -82,6 +89,11 @@ export default function MapPoint({
 			(error) => setLocationError(error.message),
 		);
 	}, [onLocationChange]);
+
+	useEffect(() => {
+		setPoints([]);
+		setArea([]);
+	}, [resetSelectionKey]);
 
 	function addPoint(point: LatLngTuple) {
 		setPoints((currentPoints) => {
@@ -109,7 +121,7 @@ export default function MapPoint({
 		return <div className={styles.loading}>地図を読み込んでいます。</div>;
 	}
 
-	const { CircleMarker, MapContainer, Polygon, Polyline, TileLayer } =
+	const { CircleMarker, MapContainer, Polygon, Polyline, TileLayer, Tooltip } =
 		leafletComponents;
 
 	return (
@@ -152,9 +164,29 @@ export default function MapPoint({
 						pathOptions={{ color: "#d4af37", fillColor: "#d4af37" }}
 					/>
 				)}
-				{area.length === 3 && <Polyline positions={area as LatLngExpression[]} />}
-				{area.length >= 4 && <Polygon positions={area as LatLngExpression[]} />}
-				</MapContainer>
+					{area.length === 3 && <Polyline positions={area as LatLngExpression[]} />}
+					{area.length >= 4 && <Polygon positions={area as LatLngExpression[]} />}
+					{registeredMappings.map((mapping) => (
+						<Polygon
+							key={mapping.id}
+							positions={mapping.area.map(
+								(point) =>
+									[point.latitude, point.longitude] as LatLngTuple,
+							)}
+							pathOptions={
+								mapping.id === activeMappingId
+									? { color: "#d4af37", fillColor: "#d4af37", fillOpacity: 0.3 }
+									: { color: "#57c7bd", fillColor: "#57c7bd", fillOpacity: 0.16 }
+							}
+						>
+							<Tooltip direction="center" opacity={0.9} sticky>
+								<strong>{mapping.track.title}</strong>
+								<br />
+								{mapping.track.artist}
+							</Tooltip>
+						</Polygon>
+					))}
+					</MapContainer>
 			</div>
 		</section>
 	);
