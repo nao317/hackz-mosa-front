@@ -119,7 +119,6 @@ export default function Home() {
       ? { status: "ready", track: selectedTrack }
       : { status: "loading" },
   );
-  const [recommendationTracks, setRecommendationTracks] = useState<PlayableTrack[]>([]);
   const [recommendationRequestId, setRecommendationRequestId] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
@@ -279,7 +278,6 @@ export default function Home() {
               ...tracks.filter((track) => track.id !== selectedTrack.id),
             ]
           : tracks;
-        setRecommendationTracks(nextTracks);
         setQueue(nextTracks, 0, true);
         setState({
           status: "ready",
@@ -325,13 +323,13 @@ export default function Home() {
   }, []);
 
   function selectRecommendation(nextIndex: number) {
-    const nextTrack = recommendationTracks[nextIndex];
+    const nextTrack = playbackQueue[nextIndex];
     if (!nextTrack) {
       return;
     }
 
     resetPlaybackState();
-    selectTrack(recommendationTracks[nextIndex], true);
+    selectTrack(nextTrack, true);
     setState({ status: "ready", track: nextTrack });
   }
 
@@ -365,10 +363,10 @@ export default function Home() {
     }
   }
 
-  const handlePlayPause = useCallback(() => {
+  function handlePlayPause() {
     setPlaybackError(null);
     toggle();
-  }, []);
+  }
 
   function handleSeek(nextTime: number) {
     seek(nextTime);
@@ -378,7 +376,7 @@ export default function Home() {
     state.status === "ready"
       ? duration || state.track.durationSeconds || 1
       : 1;
-  const canNavigateRecommendations = recommendationTracks.length > 1;
+  const canNavigateRecommendations = playbackQueue.length > 1;
 
   return (
     <div className={styles.appShell}>
