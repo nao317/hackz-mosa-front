@@ -119,7 +119,6 @@ export default function Home() {
       ? { status: "ready", track: selectedTrack }
       : { status: "loading" },
   );
-  const [recommendationTracks, setRecommendationTracks] = useState<PlayableTrack[]>([]);
   const [recommendationRequestId, setRecommendationRequestId] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackValue | null>(null);
   const [playbackError, setPlaybackError] = useState<string | null>(null);
@@ -279,7 +278,6 @@ export default function Home() {
               ...tracks.filter((track) => track.id !== selectedTrack.id),
             ]
           : tracks;
-        setRecommendationTracks(nextTracks);
         setQueue(nextTracks, 0, true);
         setState({
           status: "ready",
