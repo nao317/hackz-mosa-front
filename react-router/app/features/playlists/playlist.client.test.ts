@@ -116,6 +116,26 @@ describe("playlist API client", () => {
     );
   });
 
+  it("reports a missing playlist API as temporarily unavailable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ message: "Not Found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    );
+
+    await expect(listPlaylists()).rejects.toEqual(
+      expect.objectContaining<Partial<PlaylistAPIError>>({
+        status: 404,
+        message:
+          "プレイリスト機能を現在利用できません。しばらくしてからもう一度お試しください。",
+      }),
+    );
+  });
+
   it("converts a stored playlist track back to a playable track", () => {
     expect(
       toPlayableTrack({
