@@ -35,6 +35,10 @@
   border-bottom: 1px solid #343434;
 }
 
+.headingText {
+  min-width: 0;
+}
+
 .headingIcon {
   display: grid;
   flex: 0 0 42px;
@@ -49,6 +53,72 @@
 .header h1,
 .header p {
   margin: 0;
+}
+
+.createButton,
+.submitButton,
+.cancelButton,
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.createButton {
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 15px;
+  margin-left: auto;
+  color: #171717;
+  font-size: 13px;
+  font-weight: 750;
+  background: #d4af37;
+  border: 0;
+}
+
+.createButton:hover,
+.submitButton:hover:not(:disabled) {
+  background: #e0bd49;
+}
+
+.createButton:focus-visible,
+.submitButton:focus-visible,
+.cancelButton:focus-visible,
+.iconButton:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.playlistArea {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.apiNotice {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  color: #f2c5c2;
+  font-size: 12px;
+  background: #2a1c1c;
+  border-left: 3px solid #d4645c;
+}
+
+.apiNotice a {
+  flex: 0 0 auto;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.loadingStatus {
+  margin: 0 0 12px;
+  color: #a9a9a9;
+  font-size: 12px;
 }
 
 .header h1 {
@@ -187,6 +257,132 @@
   font-weight: 700;
 }
 
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  padding: 20px;
+  background: rgb(0 0 0 / 0.72);
+  place-items: center;
+}
+
+.modal {
+  width: min(100%, 440px);
+  padding: 22px;
+  color: #ffffff;
+  background: #1b1b1b;
+  border: 1px solid #4a4a4a;
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.45);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #383838;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.iconButton {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #4a4a4a;
+}
+
+.createForm {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.createForm label,
+.createForm label > span {
+  display: grid;
+}
+
+.createForm label {
+  gap: 7px;
+}
+
+.createForm label > span {
+  color: #bdbdbd;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.createForm input,
+.createForm textarea {
+  width: 100%;
+  padding: 10px 11px;
+  color: #ffffff;
+  font: inherit;
+  background: #111111;
+  border: 1px solid #505050;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.createForm textarea {
+  resize: vertical;
+}
+
+.createForm input:focus,
+.createForm textarea:focus {
+  border-color: #d4af37;
+  outline: 1px solid #d4af37;
+}
+
+.formError {
+  min-height: 18px;
+  margin: -4px 0 0;
+  color: #f2b8b5;
+  font-size: 12px;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.submitButton,
+.cancelButton {
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.submitButton {
+  color: #171717;
+  background: #d4af37;
+  border: 0;
+}
+
+.cancelButton {
+  color: #ffffff;
+  background: transparent;
+  border: 1px solid #555555;
+}
+
+.submitButton:disabled,
+.cancelButton:disabled,
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 @media (max-width: 767px) {
   .content {
     gap: 18px;
@@ -199,6 +395,22 @@
 
   .header h1 {
     font-size: 21px;
+  }
+
+  .headingText p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .createButton {
+    width: 40px;
+    min-width: 40px;
+    padding: 0;
+  }
+
+  .createButton span {
+    display: none;
   }
 
   .playlistGrid {
@@ -228,6 +440,15 @@
 
   .playlistDescription {
     display: none;
+  }
+
+  .apiNotice {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modal {
+    padding: 18px;
   }
 }
 
