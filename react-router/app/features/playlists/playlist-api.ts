@@ -32,6 +32,7 @@ type APIErrorBody = {
     code?: string;
     message?: string;
   };
+  message?: string;
 };
 
 export class PlaylistAPIError extends Error {
@@ -77,9 +78,17 @@ async function playlistRequest<T>(
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as APIErrorBody;
     const code = body.error?.code;
+    const statusMessage =
+      response.status === 404
+        ? "プレイリスト機能を現在利用できません。しばらくしてからもう一度お試しください。"
+        : response.status === 401
+          ? errorMessages.unauthorized
+          : undefined;
     throw new PlaylistAPIError(
       (code && errorMessages[code]) ||
         body.error?.message ||
+        statusMessage ||
+        body.message ||
         "プレイリストの操作に失敗しました。",
       response.status,
       code,
