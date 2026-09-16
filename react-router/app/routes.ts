@@ -6,5 +6,6 @@ export default [
 	route("mypage", "routes/mypage.tsx"),
 	route("map", "routes/map.tsx"),
 	route("playlists", "routes/playlists.tsx"),
-	route("playlists/:feedback", "routes/feedback-playlist.tsx"),
+	route("playlists/feedback/:feedback", "routes/feedback-playlist.tsx"),
+	route("playlists/:playlistId", "routes/playlist-detail.tsx"),
 ] satisfies RouteConfig;
