@@ -154,3 +154,12 @@ export async function signOutCurrentUser(): Promise<void> {
 export async function requestPasswordReset(email: string): Promise<void> {
   await sendPasswordResetEmail(getClientAuth(), email);
 }
+
+export async function getCurrentIDToken(): Promise<string> {
+  const auth = getClientAuth();
+  await auth.authStateReady();
+  if (!auth.currentUser) {
+    throw new Error("プレイリストを利用するにはログインしてください。");
+  }
+  return auth.currentUser.getIdToken();
+}
