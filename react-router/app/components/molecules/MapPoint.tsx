@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { LatLng, LatLngExpression, LatLngTuple } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -16,83 +16,20 @@ type MapPointProps = {
 
 function MapInteraction({
 	useMapEvents,
-	isEditing,
 	onPoint,
-	onDrawStart,
-	onDrawMove,
-	onDrawEnd,
 }: {
 	useMapEvents: typeof import("react-leaflet")["useMapEvents"];
-	isEditing: boolean;
 	onPoint: (point: LatLngTuple) => void;
-	onDrawStart: (point: LatLngTuple) => void;
-	onDrawMove: (point: LatLngTuple) => void;
-	onDrawEnd: () => void;
 }) {
-	const map = useMapEvents({
+	useMapEvents({
 		contextmenu(event) {
 			event.originalEvent.preventDefault();
 		},
 	});
-	const drawingRef = useRef(false);
-
-	useEffect(() => {
-		const container = map.getContainer();
-
-		function handlePointerDown(event: PointerEvent) {
-			if (!isEditing || (event.pointerType === "mouse" && event.button !== 0)) {
-				return;
-			}
-
-			const point = map.containerPointToLatLng(
-				map.mouseEventToContainerPoint(event),
-			);
-
-			event.preventDefault();
-		drawingRef.current = true;
-			map.dragging.disable();
-			container.setPointerCapture(event.pointerId);
-			onDrawStart(toTuple(point));
-		}
-
-		function handlePointerMove(event: PointerEvent) {
-			if (drawingRef.current && isEditing) {
-				const point = map.containerPointToLatLng(
-					map.mouseEventToContainerPoint(event),
-				);
-				onDrawMove(toTuple(point));
-			}
-		}
-
-		function handlePointerUp() {
-			if (drawingRef.current) {
-				drawingRef.current = false;
-				onDrawEnd();
-				map.dragging.enable();
-			}
-		}
-
-		container.addEventListener("pointerdown", handlePointerDown);
-		container.addEventListener("pointermove", handlePointerMove);
-		window.addEventListener("pointerup", handlePointerUp);
-
-		return () => {
-			container.removeEventListener("pointerdown", handlePointerDown);
-			container.removeEventListener("pointermove", handlePointerMove);
-			window.removeEventListener("pointerup", handlePointerUp);
-			if (drawingRef.current) {
-				drawingRef.current = false;
-				onDrawEnd();
-			}
-			map.dragging.enable();
-		};
-	}, [isEditing, map, onDrawEnd, onDrawMove, onDrawStart]);
 
 	useMapEvents({
 		click(event) {
-			if (!isEditing) {
-				onPoint(toTuple(event.latlng));
-			}
+			onPoint(toTuple(event.latlng));
 		},
 	});
 
@@ -110,7 +47,7 @@ function CurrentLocationController({
 
 	useEffect(() => {
 		if (location) {
-			map.setView([location.latitude, location.longitude], 15);
+			map.setView([location.latitude, location.longitude], map.getZoom());
 		}
 	}, [location, map]);
 
@@ -133,7 +70,6 @@ export default function MapPoint({
 	const [area, setArea] = useState<LatLngTuple[]>([]);
 	const [location, setLocation] = useState<Location | null>(null);
 	const [locationError, setLocationError] = useState<string | null>(null);
-	const [isEditing, setIsEditing] = useState(false);
 
 	useEffect(() => {
 		void import("react-leaflet").then(setLeafletComponents);
@@ -162,27 +98,6 @@ export default function MapPoint({
 		});
 	}
 
-	const startDrawing = useCallback((point: LatLngTuple) => {
-		setArea([point]);
-	}, []);
-
-	const moveDrawing = useCallback((point: LatLngTuple) => {
-		setArea((currentArea) => [...currentArea, point]);
-	}, []);
-
-	const finishDrawing = useCallback(() => {
-		setArea((currentArea) => {
-			if (currentArea.length > 2) {
-				const closedArea = [...currentArea, currentArea[0]];
-				onAreaChange?.(closedArea);
-				return closedArea;
-			}
-
-			onAreaChange?.([]);
-			return [];
-		});
-	}, [onAreaChange]);
-
 	function clearSelection() {
 		setPoints([]);
 		setArea([]);
@@ -200,8 +115,7 @@ export default function MapPoint({
 	return (
 		<section className={styles.wrapper} aria-label="地図上の範囲指定">
 			<p className={styles.instructions}>
-				編集モードOFFで地図をクリックすると点を追加し、3点以上で図形になります。
-				編集モードONでは指または左ドラッグで手書きできます。
+				地図をクリックすると点を追加し、3点以上で範囲になります。
 				{locationError && ` ${locationError}`}
 			</p>
 			<div className={styles.toolbar}>
@@ -210,16 +124,8 @@ export default function MapPoint({
 				</button>
 			</div>
 			<div className={styles.mapFrame}>
-				<button
-					type="button"
-					className={isEditing ? styles.editButtonActive : styles.editButton}
-					aria-pressed={isEditing}
-					onClick={() => setIsEditing((editing) => !editing)}
-				>
-					{isEditing ? "編集を終了" : "範囲を編集"}
-				</button>
 				<MapContainer
-					className={`${styles.map} ${isEditing ? styles.editingMap : ""}`}
+					className={styles.map}
 					center={[35.681236, 139.767125]}
 					zoom={13}
 					scrollWheelZoom
@@ -234,11 +140,7 @@ export default function MapPoint({
 				/>
 				<MapInteraction
 					useMapEvents={leafletComponents.useMapEvents}
-					isEditing={isEditing}
 					onPoint={addPoint}
-					onDrawStart={startDrawing}
-					onDrawMove={moveDrawing}
-					onDrawEnd={finishDrawing}
 				/>
 				{points.map((point, index) => (
 					<CircleMarker center={point} radius={8} key={`${point.join("-")}-${index}`} />
