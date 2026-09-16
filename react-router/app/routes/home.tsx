@@ -363,10 +363,10 @@ export default function Home() {
     }
   }
 
-  function handlePlayPause() {
+  const handlePlayPause = useCallback(() => {
     setPlaybackError(null);
     toggle();
-  }
+  }, [toggle]);
 
   function handleSeek(nextTime: number) {
     seek(nextTime);

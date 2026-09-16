@@ -4,6 +4,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import type { PlayableTrack } from "../audius/audius";
@@ -56,6 +57,7 @@ function readSavedPlayback(): SavedPlayback {
 export function PlaybackProvider({ children }: { children: ReactNode }) {
   const saved = useRef(readSavedPlayback()).current;
   const audioRef = useRef<HTMLAudioElement>(null);
+  const trackRef = useRef<PlayableTrack | undefined>(saved.track);
   const pendingPlayRef = useRef(false);
   const [track, setTrack] = useState<PlayableTrack | undefined>(saved.track);
   const [queue, setQueueState] = useState<PlayableTrack[]>(saved.queue);
@@ -64,6 +66,8 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const [currentTime, setCurrentTime] = useState(saved.currentTime);
   const [duration, setDuration] = useState(0);
   const [autoPlay, setAutoPlayState] = useState(saved.autoPlay);
+
+  trackRef.current = track;
 
   useEffect(() => {
     if (!track || !audioRef.current) {
@@ -90,7 +94,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
   }, [autoPlay, currentTime, index, queue, track]);
 
-  function setQueue(tracks: PlayableTrack[], nextIndex = 0, play = false) {
+  const setQueue = useCallback((tracks: PlayableTrack[], nextIndex = 0, play = false) => {
     const nextTrack = tracks[nextIndex];
     setQueueState(tracks);
     setIndex(nextTrack ? nextIndex : -1);
@@ -98,9 +102,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       pendingPlayRef.current = play;
       setTrack(nextTrack);
     }
-  }
+  }, []);
 
-  function selectTrack(nextTrack: PlayableTrack, play = true) {
+  const selectTrack = useCallback((nextTrack: PlayableTrack, play = true) => {
     const nextIndex = queue.findIndex((item) => item.id === nextTrack.id);
     if (nextIndex >= 0) {
       setIndex(nextIndex);
@@ -110,11 +114,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     }
     pendingPlayRef.current = play;
     setTrack(nextTrack);
-  }
+  }, [queue]);
 
-  function toggle() {
+  const toggle = useCallback(() => {
     const audio = audioRef.current;
-    if (!audio || !track) {
+    if (!audio || !trackRef.current) {
       return;
     }
     if (audio.paused) {
@@ -122,24 +126,24 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     } else {
       audio.pause();
     }
-  }
+  }, []);
 
-  function seek(time: number) {
+  const seek = useCallback((time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
     }
     setCurrentTime(time);
-  }
+  }, []);
 
-  function setAutoPlay(enabled: boolean) {
+  const setAutoPlay = useCallback((enabled: boolean) => {
     setAutoPlayState(enabled);
     if (enabled && track && !isPlaying) {
       pendingPlayRef.current = true;
       void audioRef.current?.play().catch(() => setIsPlaying(false));
     }
-  }
+  }, [isPlaying, track]);
 
-  function playNext() {
+  const playNext = useCallback(() => {
     if (!autoPlay || queue.length === 0) {
       return;
     }
@@ -147,7 +151,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     pendingPlayRef.current = true;
     setIndex(nextIndex);
     setTrack(queue[nextIndex]);
-  }
+  }, [autoPlay, index, queue]);
 
   return (
     <PlaybackContext.Provider
