@@ -1,0 +1,43 @@
+.player {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(320px, calc(100vw - 32px));
+  padding: 10px 12px 10px 14px;
+  color: #ffffff;
+  background: #171717;
+  border: 1px solid #4b4d50;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+.text {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.text strong,
+.text span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text span {
+  color: #c7c7c7;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 767px) {
+  .player {
+    right: 12px;
+    bottom: 12px;
+  }
+}
